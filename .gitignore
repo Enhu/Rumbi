@@ -351,3 +351,4 @@ MigrationBackup/
 
 #Config files
 appsettings.json
+appsettings.*.json

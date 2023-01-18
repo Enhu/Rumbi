@@ -19,8 +19,10 @@ using Rumbi.Services;
         };
     public Program()
         {
+        var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
         _configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
+                .AddJsonFile($"appsettings.{environmentName}.json", optional: false, reloadOnChange: true)
                 .Build();
 
         _services = new ServiceCollection()
