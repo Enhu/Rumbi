@@ -1,35 +1,60 @@
 ﻿using Discord;
+using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Rumbi.Services;
 
-public class Program
-{
-    private DiscordSocketClient _client;
-    public static Task Main(string[] args) => new Program().MainAsync();
-
-    public async Task MainAsync()
+    public class Program
     {
-        _client = new DiscordSocketClient();
+    private readonly IConfiguration _configuration;
 
-        _client.Log += Log;
+    private readonly IServiceProvider _services;
 
-        //  You can assign your bot token to a string, and pass that in to connect.
-        //  This is, however, insecure, particularly if you plan to have your code hosted in a public repository.
-        var token = "token";
+        private readonly DiscordSocketConfig _socketConfig = new()
+        {
+            GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers,
+            AlwaysDownloadUsers = true,
+        };
+    public Program()
+        {
+        _configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .Build();
 
-        // Some alternative options would be to keep your token in an Environment Variable or a standalone file.
-        // var token = Environment.GetEnvironmentVariable("NameOfYourEnvironmentVariable");
-        // var token = File.ReadAllText("token.txt");
-        // var token = JsonConvert.DeserializeObject<AConfigurationClass>(File.ReadAllText("config.json")).Token;
+        _services = new ServiceCollection()
+                .AddSingleton(_configuration)
+                .AddSingleton(_socketConfig)
+                .AddSingleton<DiscordSocketClient>()
+                .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
+                .AddSingleton<InteractionHandler>()
+                .BuildServiceProvider();
+        }
 
-        await _client.LoginAsync(TokenType.Bot, token);
-        await _client.StartAsync();
+        static void Main(string[] args)
+            => new Program().RunAsync()
+                .GetAwaiter()
+                .GetResult();
 
-        // Block this task until the program is closed.
-        await Task.Delay(-1);
+        public async Task RunAsync()
+        {
+            var client = _services.GetRequiredService<DiscordSocketClient>();
+
+            client.Log += LogAsync;
+
+            // Here we can initialize the service that will register and execute our commands
+            await _services.GetRequiredService<InteractionHandler>()
+                .InitializeAsync();
+
+            // Bot token can be provided from the Configuration object we set up earlier
+            await client.LoginAsync(TokenType.Bot, _configuration["Token"]);
+            await client.StartAsync();
+
+            // Never quit the program until manually forced to.
+            await Task.Delay(Timeout.Infinite);
+        }
+
+        private async Task LogAsync(LogMessage message)
+            => Console.WriteLine(message.ToString());
     }
-    private Task Log(LogMessage msg)
-    {
-        Console.WriteLine(msg.ToString());
-        return Task.CompletedTask;
-    }
-}
