@@ -4,6 +4,7 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Rumbi.Handlers;
 using Rumbi.Services;
 
     public class Program
@@ -31,6 +32,7 @@ using Rumbi.Services;
                 .AddSingleton<DiscordSocketClient>()
                 .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
                 .AddSingleton<InteractionHandler>()
+                .AddSingleton<DiscordEventsHandler>()
                 .BuildServiceProvider();
         }
 
@@ -49,9 +51,12 @@ using Rumbi.Services;
             await _services.GetRequiredService<InteractionHandler>()
                 .InitializeAsync();
 
+            await _services.GetRequiredService<Rumbi.Handlers.DiscordEventsHandler>()
+                .InitializeAsync();
+
             // Bot token can be provided from the Configuration object we set up earlier
             await client.LoginAsync(TokenType.Bot, _configuration["Token"]);
-            await client.StartAsync();
+                await client.StartAsync();
 
             // Never quit the program until manually forced to.
             await Task.Delay(Timeout.Infinite);
