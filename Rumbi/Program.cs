@@ -15,7 +15,7 @@ using Rumbi.Services;
 
         private readonly DiscordSocketConfig _socketConfig = new()
         {
-            GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers,
+            GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers | GatewayIntents.GuildPresences,
             AlwaysDownloadUsers = true,
         };
     public Program()
@@ -32,7 +32,7 @@ using Rumbi.Services;
                 .AddSingleton<DiscordSocketClient>()
                 .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
                 .AddSingleton<InteractionHandler>()
-                .AddSingleton<DiscordEventsHandler>()
+                .AddSingleton<DiscordEventHandler>()
                 .BuildServiceProvider();
         }
 
@@ -51,8 +51,8 @@ using Rumbi.Services;
             await _services.GetRequiredService<InteractionHandler>()
                 .InitializeAsync();
 
-            await _services.GetRequiredService<Rumbi.Handlers.DiscordEventsHandler>()
-                .InitializeAsync();
+            _services.GetRequiredService<DiscordEventHandler>()
+                .Initialize();
 
             // Bot token can be provided from the Configuration object we set up earlier
             await client.LoginAsync(TokenType.Bot, _configuration["Token"]);

@@ -1,4 +1,5 @@
-﻿using Discord.Interactions;
+﻿using Discord;
+using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
@@ -6,23 +7,22 @@ using System.Reflection.Metadata;
 
 namespace Rumbi.Handlers
 {
-    public class DiscordEventsHandler
+    public class DiscordEventHandler
     {
         private readonly DiscordSocketClient _client;
-        private readonly IServiceProvider _services;
         private readonly IConfiguration _configuration;
 
-        public DiscordEventsHandler(DiscordSocketClient client, IServiceProvider services, IConfiguration config)
+        public DiscordEventHandler(DiscordSocketClient client, IConfiguration config)
         {
             _client = client;
-            _services = services;
             _configuration = config;
         }
 
-        public async Task InitializeAsync()
+        public void Initialize()
         {
             _client.UserJoined += HandleUserJoined;
             _client.UserLeft += HandleUserLeft;
+            _client.PresenceUpdated += HandleUserPresenceUpdated;
         }
 
         private async Task HandleUserLeft(SocketGuild guild, SocketUser user)
@@ -34,6 +34,14 @@ namespace Rumbi.Handlers
         {
             var modsChannel = _client.GetChannel(_configuration.GetValue<ulong>("ModChannelId")) as SocketTextChannel;
             await modsChannel.SendMessageAsync("User: username: " + arg.Username + " joined.");
+        }
+
+        private async Task HandleUserPresenceUpdated(SocketUser user, SocketPresence oldPresence, SocketPresence newPresence)
+        {
+            foreach (var activity in newPresence.Activities)
+            {
+                Console.WriteLine(activity.Name);
+            }
         }
     }
 }
