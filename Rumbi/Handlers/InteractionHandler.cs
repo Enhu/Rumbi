@@ -25,7 +25,6 @@ namespace Rumbi.Services
         {
             // Process when the client is ready, so we can register our commands.
             _client.Ready += ReadyAsync;
-            _handler.Log += LogAsync;
 
             // Add the public modules that inherit InteractionModuleBase<T> to the InteractionService
             await _handler.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
@@ -33,9 +32,6 @@ namespace Rumbi.Services
             // Process the InteractionCreated payloads to execute Interactions commands
             _client.InteractionCreated += HandleInteraction;
         }
-
-        private async Task LogAsync(LogMessage log)
-            => Console.WriteLine(log);
 
         private async Task ReadyAsync()
         {

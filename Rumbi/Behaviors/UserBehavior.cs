@@ -5,14 +5,14 @@ using Microsoft.Extensions.Configuration;
 using System.Reflection;
 using System.Reflection.Metadata;
 
-namespace Rumbi.Handlers
+namespace Rumbi.Behaviors
 {
-    public class DiscordEventHandler
+    public class UserBehavior
     {
         private readonly DiscordSocketClient _client;
         private readonly IConfiguration _configuration;
 
-        public DiscordEventHandler(DiscordSocketClient client, IConfiguration config)
+        public UserBehavior(DiscordSocketClient client, IConfiguration config)
         {
             _client = client;
             _configuration = config;
