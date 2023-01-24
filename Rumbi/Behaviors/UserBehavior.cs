@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 
 namespace Rumbi.Behaviors
 {
@@ -60,9 +61,20 @@ namespace Rumbi.Behaviors
 
         private async Task HandleUserPresenceUpdated(SocketUser user, SocketPresence oldPresence, SocketPresence newPresence)
         {
-            foreach (var activity in newPresence.Activities)
+            if(oldPresence.Activities.Any(x => x.Type == ActivityType.Streaming))
             {
-                Console.WriteLine(activity.Name);
+                var guild = _client.GetGuild(_configuration.GetValue<ulong>("GuildId"));
+                var streamingRole = guild.GetRole(_configuration.GetValue<ulong>("Roles:Streaming"));
+                var guildUser = guild.GetUser(user.Id);
+                await guildUser.RemoveRoleAsync(streamingRole);
+            }
+
+            if(newPresence.Activities.Any(x => x.Type == ActivityType.Streaming))
+            {
+                var guild = _client.GetGuild(_configuration.GetValue<ulong>("GuildId"));
+                var streamingRole = guild.GetRole(_configuration.GetValue<ulong>("Roles:Streaming"));
+                var guildUser = guild.GetUser(user.Id);
+                await guildUser.AddRoleAsync(streamingRole);
             }
         }
     }
