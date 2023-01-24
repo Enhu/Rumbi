@@ -61,7 +61,7 @@ namespace Rumbi.Behaviors
 
         private async Task HandleUserPresenceUpdated(SocketUser user, SocketPresence oldPresence, SocketPresence newPresence)
         {
-            if(oldPresence.Activities.Any(x => x.Type == ActivityType.Streaming))
+            if(oldPresence.Activities.Any(x => x.Type == ActivityType.Streaming && x.Name == "A Hat in Time"))
             {
                 var guild = _client.GetGuild(_configuration.GetValue<ulong>("GuildId"));
                 var streamingRole = guild.GetRole(_configuration.GetValue<ulong>("Roles:Streaming"));
@@ -69,7 +69,7 @@ namespace Rumbi.Behaviors
                 await guildUser.RemoveRoleAsync(streamingRole);
             }
 
-            if(newPresence.Activities.Any(x => x.Type == ActivityType.Streaming))
+            if(newPresence.Activities.Any(x => x.Type == ActivityType.Streaming && x.Name == "A Hat in Time"))
             {
                 var guild = _client.GetGuild(_configuration.GetValue<ulong>("GuildId"));
                 var streamingRole = guild.GetRole(_configuration.GetValue<ulong>("Roles:Streaming"));
