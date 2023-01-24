@@ -1,8 +1,5 @@
-﻿using Discord;
-using Discord.Interactions;
+﻿using Discord.Interactions;
 using Rumbi.Services;
-using System;
-using System.Threading.Tasks;
 
 namespace Rumbi.Modules
 {
@@ -22,5 +19,11 @@ namespace Rumbi.Modules
         [SlashCommand("ping", "Pings the bot and returns its latency.")]
         public async Task GreetUserAsync()
             => await RespondAsync(text: $":ping_pong: It took me {Context.Client.Latency}ms to respond to you!", ephemeral: true);
+
+        [SlashCommand("colorme", "Add yourself a server color!.")]
+        public async Task ColorUser()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
