@@ -23,18 +23,9 @@ public class Program
     {
         var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-        if(environmentName != null)
-        {
-            _configuration = new ConfigurationBuilder()
-                .AddJsonFile($"appsettings.{environmentName}.json", optional: false, reloadOnChange: true)
-                .Build();
-        }
-        else
-        {
-            _configuration = new ConfigurationBuilder()
-                .AddJsonFile($"appsettings.Prod.json", optional: false, reloadOnChange: true)
-                .Build();
-        }
+        _configuration = new ConfigurationBuilder()
+            .AddJsonFile($"appsettings.{environmentName}.json", optional: false, reloadOnChange: true)
+            .Build();
 
         _services = new ServiceCollection()
                 .AddSingleton(_configuration)
