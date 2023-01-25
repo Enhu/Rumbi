@@ -1,7 +1,9 @@
-﻿using Discord;
+﻿using System.Web;
+using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Serilog;
+using TwitchLib.Api;
 
 namespace Rumbi.Behaviors
 {
@@ -9,11 +11,13 @@ namespace Rumbi.Behaviors
     {
         private readonly DiscordSocketClient _client;
         private readonly IConfiguration _configuration;
+        private TwitchAPI _api;
 
-        public UserBehavior(DiscordSocketClient client, IConfiguration config)
+        public UserBehavior(DiscordSocketClient client, IConfiguration config, TwitchAPI api)
         {
             _client = client;
             _configuration = config;
+            _api = api;
         }
 
         public void Initialize()
@@ -40,6 +44,7 @@ namespace Rumbi.Behaviors
             var logChannel = _client.GetChannel(logChannelId) as SocketTextChannel;
             await logChannel.SendMessageAsync(embed: embed.Build());
         }
+
         private async Task HandleUserLeft(SocketGuild guild, SocketUser user)
         {
             var embed = new EmbedBuilder();
@@ -59,9 +64,11 @@ namespace Rumbi.Behaviors
             await logChannel.SendMessageAsync(embed: embed.Build());
         }
 
-        private async Task HandleUserPresenceUpdated(SocketUser user, SocketPresence oldPresence, SocketPresence newPresence)
+        private async Task HandleUserPresenceUpdated(SocketUser user, SocketPresence oldPresence,
+            SocketPresence newPresence)
         {
-            if(oldPresence.Activities.Any(x => x.Type == ActivityType.Streaming && x.Name == "A Hat in Time"))
+            if (oldPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) is StreamingGame
+                streamingActivity)
             {
                 var guild = _client.GetGuild(_configuration.GetValue<ulong>("GuildId"));
                 var streamingRole = guild.GetRole(_configuration.GetValue<ulong>("Roles:Streaming"));
@@ -69,8 +76,16 @@ namespace Rumbi.Behaviors
                 await guildUser.RemoveRoleAsync(streamingRole);
             }
 
-            if(newPresence.Activities.Any(x => x.Type == ActivityType.Streaming && x.Name == "A Hat in Time"))
+            streamingActivity =
+                newPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) as StreamingGame;
+            if (streamingActivity != null)
             {
+                //needs to implement api call to twitch api
+                var url = streamingActivity.Url;
+                var uri = new Uri(url);
+                var segments = uri.Segments;
+                var finalBit = HttpUtility.UrlDecode(segments[segments.Length - 1]);
+                //await _api.Helix.Users.GetUsersAsync(null, new List<string>(){finalBit});
                 var guild = _client.GetGuild(_configuration.GetValue<ulong>("GuildId"));
                 var streamingRole = guild.GetRole(_configuration.GetValue<ulong>("Roles:Streaming"));
                 var guildUser = guild.GetUser(user.Id);
