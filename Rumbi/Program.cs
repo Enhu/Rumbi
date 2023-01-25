@@ -21,7 +21,16 @@ public class Program
     };
     public Program()
     {
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Verbose()
+            .Enrich.FromLogContext()
+            .WriteTo.Console()
+            .WriteTo.File("log.txt", rollingInterval: RollingInterval.Day)
+            .CreateLogger();
+
         var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+        Log.Information($"Running environment: {environmentName}");
 
         _configuration = new ConfigurationBuilder()
             .AddJsonFile($"appsettings.{environmentName}.json", optional: false, reloadOnChange: true)
@@ -44,13 +53,6 @@ public class Program
 
     public async Task RunAsync()
     {
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Verbose()
-            .Enrich.FromLogContext()
-            .WriteTo.Console()
-            .WriteTo.File("log.txt", rollingInterval: RollingInterval.Day)
-            .CreateLogger();
-
         var client = _services.GetRequiredService<DiscordSocketClient>();
         var interaction = _services.GetRequiredService<InteractionService>();
 
