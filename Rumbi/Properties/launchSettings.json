@@ -3,6 +3,12 @@
     "Rumbi": {
       "commandName": "Project",
       "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Prod"
+      }
+    },
+    "Rumbi (Dev)": {
+      "commandName": "Project",
+      "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Dev"
       }
     }
