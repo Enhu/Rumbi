@@ -1,9 +1,10 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
 using Rumbi.Data.Config;
+using Serilog;
 using System.Web;
 using TwitchLib.Api;
+using TwitchLib.Api.Helix.Models.Streams.GetStreams;
 
 namespace Rumbi.Behaviors
 {
@@ -65,8 +66,8 @@ namespace Rumbi.Behaviors
         private async Task HandleUserPresenceUpdated(SocketUser user, SocketPresence oldPresence,
             SocketPresence newPresence)
         {
-            if (oldPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) is StreamingGame
-                streamingActivity)
+
+            if (oldPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) is StreamingGame)
             {
                 var guild = _client.GetGuild(RumbiConfig.Configuration.Guild);
                 var streamingRole = guild.GetRole(RumbiConfig.Configuration.Streaming);
@@ -74,22 +75,42 @@ namespace Rumbi.Behaviors
                 await guildUser.RemoveRoleAsync(streamingRole);
             }
 
-            streamingActivity =
+            var streamingActivity =
                 newPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) as StreamingGame;
 
             if (streamingActivity != null)
             {
-                //needs to implement api call to twitch api
                 var url = streamingActivity.Url;
-                var uri = new Uri(url);
-                var segments = uri.Segments;
-                var finalBit = HttpUtility.UrlDecode(segments[segments.Length - 1]);
-                //await _api.Helix.Users.GetUsersAsync(null, new List<string>(){finalBit});
-                var guild = _client.GetGuild(RumbiConfig.Configuration.Guild);
-                var streamingRole = guild.GetRole(RumbiConfig.Configuration.Streaming);
-                var guildUser = guild.GetUser(user.Id);
-                await guildUser.AddRoleAsync(streamingRole);
+                var channel = url.Split('/').Last();
+
+                try
+                {
+                    GetStreamsResponse stream = await GetStream(channel);
+
+                    if (stream.Streams.FirstOrDefault()?.GameName != "A Hat in Time")
+                        return;
+
+                    var guild = _client.GetGuild(RumbiConfig.Configuration.Guild);
+                    var streamingRole = guild.GetRole(RumbiConfig.Configuration.Streaming);
+                    var guildUser = guild.GetUser(user.Id);
+                    await guildUser.AddRoleAsync(streamingRole);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, e.Message, e.InnerException);
+                }
             }
+        }
+
+        private async Task<GetStreamsResponse> GetStream(string channel)
+        {
+            _twitchApi.Settings.ClientId = RumbiConfig.Configuration.TwitchClientId;
+            _twitchApi.Settings.Secret = RumbiConfig.Configuration.TwitchSecret;
+
+            var accessToken = await _twitchApi.Auth.GetAccessTokenAsync();
+            _twitchApi.Settings.AccessToken = accessToken;
+
+            return await _twitchApi.Helix.Streams.GetStreamsAsync(userIds: new List<string>() { channel });
         }
     }
 }

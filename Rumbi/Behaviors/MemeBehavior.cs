@@ -1,12 +1,6 @@
 ﻿using Discord.WebSocket;
 using Rumbi.Data;
 using Rumbi.Data.Config;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TwitchLib.Api;
 
 namespace Rumbi.Behaviors
 {
@@ -17,12 +11,12 @@ namespace Rumbi.Behaviors
         public MemeBehavior(DiscordSocketClient client, RumbiContext context)
         {
             _client = client;
-            _context = context; 
+            _context = context;
         }
 
         public void Initialize()
         {
-            _client.MessageReceived += HandleMessageReceived; 
+            _client.MessageReceived += HandleMessageReceived;
         }
 
         private async Task HandleMessageReceived(SocketMessage arg)
