@@ -10,7 +10,6 @@ namespace Rumbi.Behaviors
     public class UserBehavior
     {
         private readonly DiscordSocketClient _client;
-        private readonly IConfiguration _configuration;
         private TwitchAPI _twitchApi;
 
         public UserBehavior(DiscordSocketClient client, TwitchAPI twitchAPI)
@@ -85,8 +84,8 @@ namespace Rumbi.Behaviors
                 var segments = uri.Segments;
                 var finalBit = HttpUtility.UrlDecode(segments[segments.Length - 1]);
                 //await _api.Helix.Users.GetUsersAsync(null, new List<string>(){finalBit});
-                var guild = _client.GetGuild(_configuration.GetValue<ulong>("GuildId"));
-                var streamingRole = guild.GetRole(_configuration.GetValue<ulong>("Roles:Streaming"));
+                var guild = _client.GetGuild(RumbiConfig.Configuration.Guild);
+                var streamingRole = guild.GetRole(RumbiConfig.Configuration.Streaming);
                 var guildUser = guild.GetUser(user.Id);
                 await guildUser.AddRoleAsync(streamingRole);
             }

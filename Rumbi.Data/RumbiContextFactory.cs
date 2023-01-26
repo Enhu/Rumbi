@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Rumbi.Data.Config;
 
 namespace Rumbi.Data
 {
@@ -8,7 +9,7 @@ namespace Rumbi.Data
         public RumbiContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<RumbiContext>()
-                .UseNpgsql("Server=127.0.0.1;Port=5432;Databse=RumbiDB;User Id=postgres;Password=admin");
+                .UseNpgsql(RumbiConfig.Configuration.ConnectionString);
 
             return new RumbiContext(optionsBuilder.Options);
         }
