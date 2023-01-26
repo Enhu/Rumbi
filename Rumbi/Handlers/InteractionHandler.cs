@@ -2,6 +2,7 @@
 using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using Rumbi.Data.Config;
 using System.Reflection;
 
 namespace Rumbi.Services
@@ -11,14 +12,12 @@ namespace Rumbi.Services
         private readonly DiscordSocketClient _client;
         private readonly InteractionService _handler;
         private readonly IServiceProvider _services;
-        private readonly IConfiguration _configuration;
 
-        public InteractionHandler(DiscordSocketClient client, InteractionService handler, IServiceProvider services, IConfiguration config)
+        public InteractionHandler(DiscordSocketClient client, InteractionService handler, IServiceProvider services)
         {
             _client = client;
             _handler = handler;
             _services = services;
-            _configuration = config;
         }
 
         public async Task InitializeAsync()
@@ -35,7 +34,7 @@ namespace Rumbi.Services
 
         private async Task ReadyAsync()
         {
-            await _handler.RegisterCommandsToGuildAsync(_configuration.GetValue<ulong>("GuildId"), true);
+            await _handler.RegisterCommandsToGuildAsync(RumbiConfig.Configuration.Guild, true);
         }
 
         private async Task HandleInteraction(SocketInteraction interaction)

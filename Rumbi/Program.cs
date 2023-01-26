@@ -1,17 +1,18 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Rumbi.Behaviors;
+using Rumbi.Data;
+using Rumbi.Data.Config;
 using Rumbi.Services;
 using Serilog;
 using Serilog.Events;
 
 public class Program
 {
-    private readonly IConfiguration _configuration;
-
     private readonly IServiceProvider _services;
 
     private readonly DiscordSocketConfig _socketConfig = new()
@@ -28,16 +29,8 @@ public class Program
             .WriteTo.File("log.txt", rollingInterval: RollingInterval.Day)
             .CreateLogger();
 
-        var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-
-        Log.Information($"Running environment: {environmentName}");
-
-        _configuration = new ConfigurationBuilder()
-            .AddJsonFile($"appsettings.{environmentName}.json", optional: false, reloadOnChange: true)
-            .Build();
-
         _services = new ServiceCollection()
-                .AddSingleton(_configuration)
+                .AddDbContext<RumbiContext>(options => options.UseNpgsql(RumbiConfig.Configuration.ConnectionString))
                 .AddSingleton(_socketConfig)
                 .AddSingleton<DiscordSocketClient>()
                 .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
@@ -67,7 +60,7 @@ public class Program
         interaction.Log += LogAsync;
 
         // Bot token can be provided from the Configuration object we set up earlier
-        await client.LoginAsync(TokenType.Bot, _configuration["Token"]);
+        await client.LoginAsync(TokenType.Bot, RumbiConfig.Configuration.Token);
         await client.StartAsync();
 
         // Never quit the program until manually forced to.

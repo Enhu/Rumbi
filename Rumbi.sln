@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rumbi", "Rumbi\Rumbi.csproj", "{2428C832-A825-42B7-BEAD-848C541C6987}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rumbi", "Rumbi\Rumbi.csproj", "{2428C832-A825-42B7-BEAD-848C541C6987}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rumbi.Data", "Rumbi.Data\Rumbi.Data.csproj", "{D47E863F-1D04-45F3-AB85-DD054150ED6F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{2428C832-A825-42B7-BEAD-848C541C6987}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2428C832-A825-42B7-BEAD-848C541C6987}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2428C832-A825-42B7-BEAD-848C541C6987}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D47E863F-1D04-45F3-AB85-DD054150ED6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D47E863F-1D04-45F3-AB85-DD054150ED6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D47E863F-1D04-45F3-AB85-DD054150ED6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D47E863F-1D04-45F3-AB85-DD054150ED6F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

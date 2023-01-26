@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using Rumbi.Data.Config;
 using Serilog;
 
 namespace Rumbi.Behaviors
@@ -8,12 +9,10 @@ namespace Rumbi.Behaviors
     public class UserBehavior
     {
         private readonly DiscordSocketClient _client;
-        private readonly IConfiguration _configuration;
 
-        public UserBehavior(DiscordSocketClient client, IConfiguration config)
+        public UserBehavior(DiscordSocketClient client)
         {
             _client = client;
-            _configuration = config;
         }
 
         public void Initialize()
@@ -27,8 +26,8 @@ namespace Rumbi.Behaviors
         {
             var embed = new EmbedBuilder();
 
-            ulong logChannelId = _configuration.GetValue<ulong>("Channels:LoggingChannelId");
-            var rumbiVersion = _configuration["Version"];
+            ulong logChannelId = RumbiConfig.Configuration.LoggingChannel;
+            var rumbiVersion = RumbiConfig.Configuration.Version;
 
             embed.WithAuthor($"{user.Username}#{user.Discriminator}", user.GetAvatarUrl())
                 .WithColor(0, 135, 245)
@@ -44,8 +43,8 @@ namespace Rumbi.Behaviors
         {
             var embed = new EmbedBuilder();
 
-            ulong logChannelId = _configuration.GetValue<ulong>("Channels:LoggingChannelId");
-            var rumbiVersion = _configuration["Version"];
+            ulong logChannelId = RumbiConfig.Configuration.LoggingChannel;
+            var rumbiVersion = RumbiConfig.Configuration.Version;
 
             embed.WithAuthor($"{user.Username}#{user.Discriminator}", user.GetAvatarUrl())
                 .WithColor(0, 135, 245)
@@ -63,16 +62,16 @@ namespace Rumbi.Behaviors
         {
             if(oldPresence.Activities.Any(x => x.Type == ActivityType.Streaming && x.Name == "A Hat in Time"))
             {
-                var guild = _client.GetGuild(_configuration.GetValue<ulong>("GuildId"));
-                var streamingRole = guild.GetRole(_configuration.GetValue<ulong>("Roles:Streaming"));
+                var guild = _client.GetGuild(RumbiConfig.Configuration.Guild);
+                var streamingRole = guild.GetRole(RumbiConfig.Configuration.Streaming);
                 var guildUser = guild.GetUser(user.Id);
                 await guildUser.RemoveRoleAsync(streamingRole);
             }
 
             if(newPresence.Activities.Any(x => x.Type == ActivityType.Streaming && x.Name == "A Hat in Time"))
             {
-                var guild = _client.GetGuild(_configuration.GetValue<ulong>("GuildId"));
-                var streamingRole = guild.GetRole(_configuration.GetValue<ulong>("Roles:Streaming"));
+                var guild = _client.GetGuild(RumbiConfig.Configuration.Guild);
+                var streamingRole = guild.GetRole(RumbiConfig.Configuration.Streaming);
                 var guildUser = guild.GetUser(user.Id);
                 await guildUser.AddRoleAsync(streamingRole);
             }
