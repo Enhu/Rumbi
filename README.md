@@ -1,4 +1,4 @@
-# RumbiBot
+# Rumbi
 
 A bot to provide needs for the A Hat in Time speedrunning discord.
 
