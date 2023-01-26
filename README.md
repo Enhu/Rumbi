@@ -10,6 +10,9 @@ Clone the repository and make a file called "appsettings.Dev.json" on the root f
 {
   "Token": "your-bot-token-goes-here",
   "GuildId": 1234,
+  "TwitchClientId": "twitch id goes here",
+  "TwitchSecretToken": "twitch secret token goes here",
+  "TwitchAuth": "twitch auth goes here"
 }
 
 ```
