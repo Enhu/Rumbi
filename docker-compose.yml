@@ -21,9 +21,9 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
-      PGDATA: /data/postgres
+      POSTGRES_DB: RumbiDB
     volumes:
-       - postgres:/data/postgres
+       - rumbi_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
