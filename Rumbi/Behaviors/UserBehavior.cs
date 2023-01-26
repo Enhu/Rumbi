@@ -12,12 +12,12 @@ namespace Rumbi.Behaviors
     {
         private readonly DiscordSocketClient _client;
         private readonly IConfiguration _configuration;
+        private TwitchAPI _twitchApi;
 
-        public UserBehavior(DiscordSocketClient client, IConfiguration config)
+        public UserBehavior(DiscordSocketClient client, TwitchAPI twitchAPI)
         {
             _client = client;
-            _configuration = config;
-            _api = api;
+            _twitchApi = twitchAPI;
         }
 
         public void Initialize()
