@@ -13,6 +13,6 @@ namespace Rumbi.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
             => modelBuilder.ApplyConfigurationsFromAssembly(typeof(RumbiContext).Assembly);
 
-        public DbSet<User> Users { get; set; } = null!;
+        public DbSet<Roles> Roles { get; set; } = null!;
     }
 }
