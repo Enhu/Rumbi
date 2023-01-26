@@ -76,6 +76,7 @@ namespace Rumbi.Behaviors
 
             streamingActivity =
                 newPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) as StreamingGame;
+
             if (streamingActivity != null)
             {
                 //needs to implement api call to twitch api

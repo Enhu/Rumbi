@@ -9,6 +9,7 @@ using Rumbi.Data.Config;
 using Rumbi.Services;
 using Serilog;
 using Serilog.Events;
+using System.Diagnostics;
 using TwitchLib.Api;
 
 public class Program
@@ -39,6 +40,8 @@ public class Program
                 .AddSingleton<MemeBehavior>()
                 .AddSingleton<TwitchAPI>()
                 .BuildServiceProvider();
+
+        Log.Information($"All services loaded.");
     }
 
     static void Main(string[] args)
@@ -51,7 +54,6 @@ public class Program
         var client = _services.GetRequiredService<DiscordSocketClient>();
         var interaction = _services.GetRequiredService<InteractionService>();
 
-        // Here we can initialize the service that will register and execute our commands
         await _services.GetRequiredService<InteractionHandler>()
             .InitializeAsync();
 
@@ -64,9 +66,18 @@ public class Program
         client.Log += LogAsync;
         interaction.Log += LogAsync;
 
-        // Bot token can be provided from the Configuration object we set up earlier
-        await client.LoginAsync(TokenType.Bot, RumbiConfig.Configuration.Token);
-        await client.StartAsync();
+        Log.Information("Logging in...");
+        try
+        {
+            await client.LoginAsync(TokenType.Bot, RumbiConfig.Configuration.Token);
+            await client.StartAsync();
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, e.Message, e.InnerException);
+            Environment.Exit(1);
+        }
+        Log.Information("Successfully logged in.");
 
         // Never quit the program until manually forced to.
         await Task.Delay(Timeout.Infinite);
