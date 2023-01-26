@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Rumbi.Data.Config
+﻿namespace Rumbi.Data.Config
 {
-    public  class BotConfig
+    public class BotConfig
     {
         public string Token { get; init; } = null!;
 

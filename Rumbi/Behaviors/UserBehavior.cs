@@ -1,9 +1,8 @@
-﻿using System.Web;
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Rumbi.Data.Config;
-using Serilog;
+using System.Web;
 using TwitchLib.Api;
 
 namespace Rumbi.Behaviors

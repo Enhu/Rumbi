@@ -1,5 +1,4 @@
-﻿using Discord;
-using Discord.Interactions;
+﻿using Discord.Interactions;
 using Rumbi.Services;
 using Serilog;
 using System.Drawing;
