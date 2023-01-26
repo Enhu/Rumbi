@@ -17,7 +17,7 @@ public class Program
 
     private readonly DiscordSocketConfig _socketConfig = new()
     {
-        GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers | GatewayIntents.GuildPresences,
+        GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers | GatewayIntents.GuildPresences | GatewayIntents.MessageContent,
         AlwaysDownloadUsers = true,
     };
     public Program()
@@ -36,6 +36,7 @@ public class Program
                 .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
                 .AddSingleton<InteractionHandler>()
                 .AddSingleton<UserBehavior>()
+                .AddSingleton<MemeBehavior>()
                 .AddSingleton<TwitchAPI>()
                 .BuildServiceProvider();
     }
@@ -55,6 +56,9 @@ public class Program
             .InitializeAsync();
 
         _services.GetRequiredService<UserBehavior>()
+            .Initialize();
+
+        _services.GetRequiredService<MemeBehavior>()
             .Initialize();
 
         client.Log += LogAsync;

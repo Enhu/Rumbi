@@ -8,6 +8,7 @@
 
         public ulong Guild { get; init; }
         public ulong LoggingChannel { get; init; }
+        public ulong MemeChannel { get; init; }
         public ulong Streaming { get; init; }
         public string Version { get; init; } = null!;
 

@@ -11,8 +11,13 @@ namespace Rumbi.Data
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-            => modelBuilder.ApplyConfigurationsFromAssembly(typeof(RumbiContext).Assembly);
+        {
+            modelBuilder.Entity<Meme>()
+                  .Property(p => p.Id)
+                  .ValueGeneratedOnAdd();
+        }
 
-        public DbSet<Roles> Roles { get; set; } = null!;
+        public DbSet<Role> Roles { get; set; } = null!;
+        public DbSet<Meme> Memes { get; set; } = null!;
     }
 }

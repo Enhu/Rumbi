@@ -1,21 +1,19 @@
 ﻿using Discord.Interactions;
 using Rumbi.Data;
+using Rumbi.Data.Models;
 using Rumbi.Services;
 using Serilog;
 using System.Drawing;
 
 namespace Rumbi.Modules
 {
-    public class CommandsModule : InteractionModuleBase<SocketInteractionContext>
+    public class GeneralModule : InteractionModuleBase<SocketInteractionContext>
     {
-        private InteractionHandler _handler;
+        private readonly RumbiContext _dbContext;
 
-        private readonly RumbiContext _context;
-
-        public CommandsModule(InteractionHandler handler, RumbiContext context)
+        public GeneralModule(RumbiContext context)
         {
-            _handler = handler;
-            _context = context;
+            _dbContext = context;
         }
 
         [SlashCommand("ping", "Pings the bot and returns its latency.")]
@@ -37,6 +35,7 @@ namespace Rumbi.Modules
             catch (Exception)
             {
                 await RespondAsync(text: "Invalid color code.", ephemeral: true);
+                Log.Warning($"String used: {hex}");
                 return;
             }
 
@@ -51,13 +50,13 @@ namespace Rumbi.Modules
             catch (Exception e)
             {
                 await RespondAsync(text: $"An error ocurred. Reach an admin for more information.", ephemeral: true);
-                Log.Error(e.InnerException, e.Message);
+                Log.Error(e.InnerException, e.Message, e.InnerException);
             }
         }
 
         private async Task AssingRole(Discord.Color dcolor)
         {
-            var role = _context.Roles.FirstOrDefault(x => x.UserId == Context.User.Id);
+            var role = _dbContext.Roles.FirstOrDefault(x => x.UserId == Context.User.Id);
 
             if (role == null)
             {
