@@ -1,12 +1,14 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Rumbi.Data.Config;
 using Serilog;
 using System.Net.Http.Headers;
 using System.Web;
 using TwitchLib.Api;
 using TwitchLib.Api.Helix.Models.Streams.GetStreams;
+using TwitchLib.Api.Interfaces;
 
 namespace Rumbi.Behaviors
 {
@@ -83,13 +85,13 @@ namespace Rumbi.Behaviors
             if (streamingActivity != null)
             {
                 var url = streamingActivity.Url;
-                var channel = url.Split('/').Last();
+                var channelName = url.Split('/').Last();
 
                 try
                 {
-                    GetStreamsResponse stream = await GetStream(channel);
+                    string game = await GetGameName(channelName);
 
-                    if (stream.Streams.FirstOrDefault()?.GameName != "A Hat in Time")
+                    if (!string.Equals(game, "A Hat in Time"))
                         return;
 
                     var guild = _client.GetGuild(RumbiConfig.Configuration.Guild);
@@ -105,7 +107,7 @@ namespace Rumbi.Behaviors
             }
         }
 
-        private async Task<GetStreamsResponse> GetStream(string channel)
+        private async Task<string> GetGameName(string channelName)
         {
             string accessToken = string.Empty;
 
@@ -127,9 +129,16 @@ namespace Rumbi.Behaviors
                     accessToken = json.AccessToken;
                 }
             }
+
+            _twitchApi.Settings.ClientId = RumbiConfig.Configuration.TwitchClientId;
             _twitchApi.Settings.AccessToken = accessToken;
 
-            return await _twitchApi.Helix.Streams.GetStreamsAsync(userIds: new List<string>() { channel });
+            var user = await _twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { channelName });
+            var broadcasterId = user.Users.FirstOrDefault().Id;
+
+            var channel = await _twitchApi.Helix.Channels.GetChannelInformationAsync(broadcasterId);
+
+            return channel.Data.FirstOrDefault().GameName;
         }
     }
 
