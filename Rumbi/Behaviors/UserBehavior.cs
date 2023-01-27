@@ -99,6 +99,7 @@ namespace Rumbi.Behaviors
                 }
                 catch (Exception e)
                 {
+                    Log.Error("An error ocurred");
                     Log.Error(e, e.Message, e.InnerException);
                 }
             }
@@ -116,6 +117,10 @@ namespace Rumbi.Behaviors
                     request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
 
                     var response = await httpClient.SendAsync(request);
+
+                    if (!response.IsSuccessStatusCode)
+                        throw new HttpRequestException();
+
                     string responseBody = await response.Content.ReadAsStringAsync();
                     TwitchResponse json = JsonConvert.DeserializeObject<TwitchResponse>(responseBody);
 
