@@ -1,9 +1,6 @@
 {
   "profiles": {
     "Rumbi": {
-      "commandName": "Project"
-    },
-    "Rumbi (Dev)": {
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Dev"

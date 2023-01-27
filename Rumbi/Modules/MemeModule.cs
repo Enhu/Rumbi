@@ -1,17 +1,11 @@
 ﻿using Discord.Interactions;
-using Microsoft.EntityFrameworkCore;
 using Rumbi.Data;
 using Rumbi.Data.Models;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Rumbi.Modules 
+namespace Rumbi.Modules
 {
-    [RequireUserPermission(Discord.GuildPermission.ManageRoles)]
+    [DefaultMemberPermissions(Discord.GuildPermission.ManageRoles)]
     public class MemeModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly RumbiContext _dbContext;
@@ -21,7 +15,7 @@ namespace Rumbi.Modules
             _dbContext = context;
         }
 
-        [SlashCommand("addmeme", "Add a new meme.")]
+        [SlashCommand("add-meme", "Add a new meme.")]
         public async Task AddMeme([Summary(description: "The trigger for the meme.")] string trigger, [Summary(description: "The content of the meme.")] string content)
         {
             try
@@ -51,7 +45,7 @@ namespace Rumbi.Modules
             }
         }
 
-        [SlashCommand("removememe", "Remove a meme.")]
+        [SlashCommand("remove-meme", "Remove a meme.")]
         public async Task AddMeme([Summary(description: "The trigger for the meme.")] string trigger)
         {
             try
@@ -76,7 +70,7 @@ namespace Rumbi.Modules
 
         }
 
-        [SlashCommand("modifymeme", "Modify a meme.")]
+        [SlashCommand("modify-meme", "Modify a meme.")]
         public async Task ModifyMeme([Summary(description: "The trigger for the meme.")] string trigger, [Summary(description: "The content of the meme.")] string content)
         {
             try

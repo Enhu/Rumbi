@@ -4,6 +4,6 @@
     {
         public ulong Id { get; set; }
         public ulong UserId { get; set; }
-        public string Color { get; set; }
+        public uint Color { get; set; }
     }
 }

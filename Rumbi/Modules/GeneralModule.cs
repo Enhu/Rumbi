@@ -1,7 +1,5 @@
 ﻿using Discord.Interactions;
 using Rumbi.Data;
-using Rumbi.Data.Models;
-using Rumbi.Services;
 using Serilog;
 using System.Drawing;
 
@@ -20,7 +18,7 @@ namespace Rumbi.Modules
         public async Task GreetUserAsync()
             => await RespondAsync(text: $":ping_pong: It took me {Context.Client.Latency}ms to respond to you!", ephemeral: true);
 
-        [SlashCommand("colorme", "Add yourself a server color!.")]
+        [SlashCommand("color-me", "Add yourself a server color!.")]
         public async Task ColorUser(string hex)
         {
             var color = new Color();

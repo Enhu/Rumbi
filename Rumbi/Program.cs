@@ -9,7 +9,6 @@ using Rumbi.Data.Config;
 using Rumbi.Services;
 using Serilog;
 using Serilog.Events;
-using System.Diagnostics;
 using TwitchLib.Api;
 
 public class Program
@@ -18,7 +17,7 @@ public class Program
 
     private readonly DiscordSocketConfig _socketConfig = new()
     {
-        GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers | GatewayIntents.GuildPresences | GatewayIntents.MessageContent,
+        GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers | GatewayIntents.GuildPresences | GatewayIntents.MessageContent | GatewayIntents.Guilds,
         AlwaysDownloadUsers = true,
     };
     public Program()
@@ -27,7 +26,6 @@ public class Program
             .MinimumLevel.Verbose()
             .Enrich.FromLogContext()
             .WriteTo.Console()
-            .WriteTo.File("log.txt", rollingInterval: RollingInterval.Day)
             .CreateLogger();
 
         _services = new ServiceCollection()
@@ -74,6 +72,7 @@ public class Program
         }
         catch (Exception e)
         {
+            Log.Error("An error ocurred trying to log in.");
             Log.Error(e, e.Message, e.InnerException);
             Environment.Exit(1);
         }
