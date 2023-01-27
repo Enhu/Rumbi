@@ -1,7 +1,9 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Newtonsoft.Json;
 using Rumbi.Data.Config;
 using Serilog;
+using System.Net.Http.Headers;
 using System.Web;
 using TwitchLib.Api;
 using TwitchLib.Api.Helix.Models.Streams.GetStreams;
@@ -104,13 +106,37 @@ namespace Rumbi.Behaviors
 
         private async Task<GetStreamsResponse> GetStream(string channel)
         {
-            _twitchApi.Settings.ClientId = RumbiConfig.Configuration.TwitchClientId;
-            _twitchApi.Settings.Secret = RumbiConfig.Configuration.TwitchSecret;
+            string accessToken = string.Empty;
 
-            var accessToken = await _twitchApi.Auth.GetAccessTokenAsync();
+            using (var httpClient = new HttpClient())
+            {
+                using (var request = new HttpRequestMessage(new HttpMethod("POST"), "https://id.twitch.tv/oauth2/token"))
+                {
+                    request.Content = new StringContent($"client_id={RumbiConfig.Configuration.TwitchClientId}&client_secret={RumbiConfig.Configuration.TwitchSecret}&grant_type=client_credentials");
+                    request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
+
+                    var response = await httpClient.SendAsync(request);
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    TwitchResponse json = JsonConvert.DeserializeObject<TwitchResponse>(responseBody);
+
+                    accessToken = json.AccessToken;
+                }
+            }
             _twitchApi.Settings.AccessToken = accessToken;
 
             return await _twitchApi.Helix.Streams.GetStreamsAsync(userIds: new List<string>() { channel });
         }
+    }
+
+    public class TwitchResponse
+    {
+        [JsonProperty("access_token")]
+        public string AccessToken { get; set; }
+        [JsonProperty("expires_in")]
+
+        public int ExpiresIn { get; set; }
+        [JsonProperty("token_type")]
+
+        public string TokenType { get; set; }
     }
 }
