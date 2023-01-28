@@ -12,12 +12,19 @@ namespace Rumbi.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Models.Config>()
+                .Property(p => p.Id)
+                .ValueGeneratedOnAdd();
+
             modelBuilder.Entity<Meme>()
-                  .Property(p => p.Id)
-                  .ValueGeneratedOnAdd();
+                .Property(p => p.Id)
+                .ValueGeneratedOnAdd();
         }
 
-        public DbSet<Role> Roles { get; set; } = null!;
+        public DbSet<User> GuildUsers { get; set; } = null!;
+        public DbSet<Channel> GuildChannels { get; set; } = null!;
+        public DbSet<Role> GuildRoles { get; set; } = null!;
         public DbSet<Meme> Memes { get; set; } = null!;
+        public DbSet<Models.Config> Config { get; set; } = null!;
     }
 }

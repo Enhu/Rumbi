@@ -1,14 +1,10 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Rumbi.Data.Config;
 using Serilog;
 using System.Net.Http.Headers;
-using System.Web;
 using TwitchLib.Api;
-using TwitchLib.Api.Helix.Models.Streams.GetStreams;
-using TwitchLib.Api.Interfaces;
 
 namespace Rumbi.Behaviors
 {

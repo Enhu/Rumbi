@@ -17,25 +17,43 @@ namespace Rumbi.Modules
         }
 
         [RequireOwner]
-        [SlashCommand("save-color-roles", "Finds all the unsaved color roles and saves them on the dabatase.")]
+        [SlashCommand("save-color-roles", "Finds all the unsaved color roles and tries to save them on the dabatase.")]
         public async Task ClearColorRoles()
         {
             await DeferAsync();
 
             var users = Context.Guild.Users.Where(x => x.Roles.Count() > 1);
+            var generalRoles = _dbContext.GuildRoles.ToList();
+            var savedCount = 0;
 
-            foreach (var user in users)
+            try
             {
-                var colorRole = user.Roles.FirstOrDefault(x => x.Name == user.Username);
+                foreach (var user in users)
+                {
+                    var colorRole = user.Roles
+                        .Where(x => x.Name == user.Username)
+                        .Where(x => !generalRoles.Any(y => y.Id == x.Id))
+                        .Where(x => !x.IsManaged)
+                        .FirstOrDefault();
 
-                if (colorRole != null && _dbContext.Roles.Any(x => x.Id == x.UserId))
-                    continue;
+                    if (colorRole == null) continue;
+                    if (_dbContext.GuildUsers.Any(x => x.Id == user.Id)) continue;
 
-                _dbContext.Roles.Add(new Role { Id = colorRole.Id, UserId = user.Id, Color = colorRole.Color.RawValue });
-                _dbContext.SaveChanges();
+                    _dbContext.GuildUsers.Add(new User { Id = user.Id, ColorRoleId = colorRole.Id, Color = colorRole.Color.RawValue, Username = user.Username });
+                    _dbContext.SaveChanges();
+
+                    savedCount++;
+                }
+
+                if (savedCount == 0) { await FollowupAsync(text: "No role colors to save.", ephemeral: true); return; }
+
+                await FollowupAsync(text: $"Successfully saved {savedCount} color roles.", ephemeral: true);
             }
-
-            await FollowupAsync(text: "Successfully saved all color roles", ephemeral: true);
+            catch (Exception e)
+            {
+                Log.Error("An error ocurred trying to save roles on the database.");
+                Log.Error(e, e.Message, e.InnerException);
+            }
         }
 
         [RequireOwner]
