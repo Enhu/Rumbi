@@ -66,24 +66,25 @@ namespace Rumbi.Behaviors
         private async Task HandleUserPresenceUpdated(SocketUser user, SocketPresence oldPresence,
             SocketPresence newPresence)
         {
-
-            if (oldPresence.Activities != null && oldPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) != null)
+            try
             {
-                var guild = _client.GetGuild(RumbiConfig.Configuration.Guild);
-                var streamingRole = guild.GetRole(RumbiConfig.Configuration.Streaming);
-                var guildUser = guild.GetUser(user.Id);
-                await guildUser.RemoveRoleAsync(streamingRole);
-            }
-
-            var streamingActivity = newPresence.Activities != null ? null : newPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) as StreamingGame;
-
-            if (streamingActivity != null)
-            {
-                var url = streamingActivity.Url;
-                var channelName = url.Split('/').Last();
-
-                try
+                if (oldPresence.Activities != null && oldPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) != null)
                 {
+                    var guild = _client.GetGuild(RumbiConfig.Configuration.Guild);
+                    var streamingRole = guild.GetRole(RumbiConfig.Configuration.Streaming);
+                    var guildUser = guild.GetUser(user.Id);
+
+                    if (guildUser.Roles.Any(x => x.Id == streamingRole.Id))
+                        await guildUser.RemoveRoleAsync(streamingRole);
+                }
+
+                var streamingActivity = newPresence.Activities == null ? null : newPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) as StreamingGame;
+
+                if (streamingActivity != null)
+                {
+                    var url = streamingActivity.Url;
+                    var channelName = url.Split('/').Last();
+
                     string game = await GetGameName(channelName);
 
                     if (!string.Equals(game, "A Hat in Time"))
@@ -94,12 +95,13 @@ namespace Rumbi.Behaviors
                     var guildUser = guild.GetUser(user.Id);
                     await guildUser.AddRoleAsync(streamingRole);
                 }
-                catch (Exception e)
-                {
-                    Log.Error("An error ocurred");
-                    Log.Error(e, e.Message, e.InnerException);
-                }
             }
+            catch (Exception e)
+            {
+                Log.Error("An error ocurred");
+                Log.Error(e, e.Message, e.InnerException);
+            }
+
         }
 
         private async Task<string> GetGameName(string channelName)
