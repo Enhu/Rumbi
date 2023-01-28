@@ -67,7 +67,7 @@ namespace Rumbi.Behaviors
             SocketPresence newPresence)
         {
 
-            if (oldPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) is StreamingGame)
+            if (oldPresence.Activities != null && oldPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) != null)
             {
                 var guild = _client.GetGuild(RumbiConfig.Configuration.Guild);
                 var streamingRole = guild.GetRole(RumbiConfig.Configuration.Streaming);
@@ -75,8 +75,7 @@ namespace Rumbi.Behaviors
                 await guildUser.RemoveRoleAsync(streamingRole);
             }
 
-            var streamingActivity =
-                newPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) as StreamingGame;
+            var streamingActivity = newPresence.Activities != null ? null : newPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) as StreamingGame;
 
             if (streamingActivity != null)
             {
