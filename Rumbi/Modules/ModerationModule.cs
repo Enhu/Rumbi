@@ -6,7 +6,7 @@ using Serilog;
 
 namespace Rumbi.Modules
 {
-    [DefaultMemberPermissions(GuildPermission.ManageGuild | GuildPermission.BanMembers)]
+    [DefaultMemberPermissions(GuildPermission.ManageGuild & GuildPermission.BanMembers)]
     public class ModerationModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly RumbiContext _dbContext;

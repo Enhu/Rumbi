@@ -5,7 +5,7 @@ using Rumbi.Data;
 
 namespace Rumbi.Modules
 {
-    [DefaultMemberPermissions(GuildPermission.ManageGuild | GuildPermission.KickMembers | GuildPermission.BanMembers)]
+    [DefaultMemberPermissions(GuildPermission.ManageGuild & GuildPermission.KickMembers & GuildPermission.BanMembers)]
     public class LeaderboardModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly RumbiContext _dbContext;
