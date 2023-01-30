@@ -9,7 +9,6 @@ using Rumbi.Data.Config;
 using Rumbi.Services;
 using Serilog;
 using Serilog.Events;
-using TwitchLib.Api;
 
 public class Program
 {
@@ -36,9 +35,9 @@ public class Program
                 .AddSingleton<DiscordSocketClient>()
                 .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
                 .AddSingleton<InteractionHandler>()
+                .AddSingleton<TwitchService>()
                 .AddSingleton<UserBehavior>()
                 .AddSingleton<MemeBehavior>()
-                .AddSingleton<TwitchAPI>()
                 .BuildServiceProvider();
 
         Log.Information("All services loaded.");

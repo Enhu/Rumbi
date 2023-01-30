@@ -1,22 +1,20 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Newtonsoft.Json;
 using Rumbi.Data.Config;
+using Rumbi.Services;
 using Serilog;
-using System.Net.Http.Headers;
-using TwitchLib.Api;
 
 namespace Rumbi.Behaviors
 {
     public class UserBehavior
     {
         private readonly DiscordSocketClient _client;
-        private TwitchAPI _twitchApi;
+        private readonly TwitchService _twitchService;
 
-        public UserBehavior(DiscordSocketClient client, TwitchAPI twitchAPI)
+        public UserBehavior(DiscordSocketClient client, TwitchService twitchService)
         {
             _client = client;
-            _twitchApi = twitchAPI;
+            _twitchService = twitchService;
         }
 
         public void Initialize()
@@ -58,7 +56,6 @@ namespace Rumbi.Behaviors
                 .WithDescription($"Account created: <t:{user.CreatedAt.ToUnixTimeSeconds()}:R>")
                 .WithTitle("Member Left");
 
-
             var logChannel = _client.GetChannel(logChannelId) as SocketTextChannel;
             await logChannel.SendMessageAsync(embed: embed.Build());
         }
@@ -68,32 +65,49 @@ namespace Rumbi.Behaviors
         {
             try
             {
-                if (oldPresence.Activities != null && oldPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) != null)
+                if (oldPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) != null)
                 {
+                    Log.Information($"Old streaming presence found.");
+
                     var guild = _client.GetGuild(RumbiConfig.Config.Guild);
                     var streamingRole = guild.GetRole(RumbiConfig.Config.Streaming);
                     var guildUser = guild.GetUser(user.Id);
 
+                    Log.Information($"Try removing streaming role...");
+
                     if (guildUser.Roles.Any(x => x.Id == streamingRole.Id))
                         await guildUser.RemoveRoleAsync(streamingRole);
+
+                    Log.Information($"Removed Streaming role.");
                 }
 
-                var streamingActivity = newPresence.Activities == null ? null : newPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) as StreamingGame;
+                var streamingActivity = newPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) as StreamingGame;
 
                 if (streamingActivity != null)
                 {
+                    Log.Information($"New streaming presence found, url: {streamingActivity.Url}");
+
                     var url = streamingActivity.Url;
                     var channelName = url.Split('/').Last();
 
-                    string game = await GetGameName(channelName);
+                    Log.Information($"Try gettng streaming information..");
+
+                    var accessToken = await _twitchService.Authenticate();
+                    string game = await _twitchService.GetStreamGame(accessToken, channelName);
+
+                    Log.Information($"Stream game name: {game}");
 
                     if (!string.Equals(game, "A Hat in Time"))
                         return;
+
+                    Log.Information($"Hat stream found. Try adding streaming role...");
 
                     var guild = _client.GetGuild(RumbiConfig.Config.Guild);
                     var streamingRole = guild.GetRole(RumbiConfig.Config.Streaming);
                     var guildUser = guild.GetUser(user.Id);
                     await guildUser.AddRoleAsync(streamingRole);
+
+                    Log.Information($"Streaming role added.");
                 }
             }
             catch (Exception e)
@@ -103,51 +117,5 @@ namespace Rumbi.Behaviors
             }
 
         }
-
-        private async Task<string> GetGameName(string channelName)
-        {
-            string accessToken = string.Empty;
-
-            using (var httpClient = new HttpClient())
-            {
-                using (var request = new HttpRequestMessage(new HttpMethod("POST"), "https://id.twitch.tv/oauth2/token"))
-                {
-                    request.Content = new StringContent($"client_id={RumbiConfig.Config.TwitchClientId}&client_secret={RumbiConfig.Config.TwitchSecret}&grant_type=client_credentials");
-                    request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
-
-                    var response = await httpClient.SendAsync(request);
-
-                    if (!response.IsSuccessStatusCode)
-                        throw new HttpRequestException();
-
-                    string responseBody = await response.Content.ReadAsStringAsync();
-                    TwitchResponse json = JsonConvert.DeserializeObject<TwitchResponse>(responseBody);
-
-                    accessToken = json.AccessToken;
-                }
-            }
-
-            _twitchApi.Settings.ClientId = RumbiConfig.Config.TwitchClientId;
-            _twitchApi.Settings.AccessToken = accessToken;
-
-            var user = await _twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { channelName });
-            var broadcasterId = user.Users.FirstOrDefault().Id;
-
-            var channel = await _twitchApi.Helix.Channels.GetChannelInformationAsync(broadcasterId);
-
-            return channel.Data.FirstOrDefault().GameName;
-        }
-    }
-
-    public class TwitchResponse
-    {
-        [JsonProperty("access_token")]
-        public string AccessToken { get; set; }
-        [JsonProperty("expires_in")]
-
-        public int ExpiresIn { get; set; }
-        [JsonProperty("token_type")]
-
-        public string TokenType { get; set; }
     }
 }
