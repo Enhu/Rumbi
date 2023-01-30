@@ -65,7 +65,7 @@ namespace Rumbi.Behaviors
         {
             try
             {
-                if (oldPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) != null)
+                if (oldPresence.Activities != null && oldPresence.Activities.Any(x => x.Type == ActivityType.Streaming))
                 {
                     Log.Information($"Old streaming presence found.");
 
