@@ -75,10 +75,12 @@ namespace Rumbi.Behaviors
 
                     Log.Information($"Try removing streaming role...");
 
-                    if (guildUser.Roles.Any(x => x.Id == streamingRole.Id))
-                        await guildUser.RemoveRoleAsync(streamingRole);
-
-                    Log.Information($"Removed Streaming role.");
+                    if (guildUser.Roles.Any(x => x.Id == streamingRole.Id)) {
+                        Log.Information($"Removed Streaming role.");
+                        await guildUser.RemoveRoleAsync(streamingRole); 
+                        return; 
+                    }
+                    Log.Information($"No streaming role found.");
                 }
 
                 var streamingActivity = newPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) as StreamingGame;
@@ -86,6 +88,18 @@ namespace Rumbi.Behaviors
                 if (streamingActivity != null)
                 {
                     Log.Information($"New streaming presence found, url: {streamingActivity.Url}");
+
+                    var guild = _client.GetGuild(RumbiConfig.Config.Guild);
+                    var streamingRole = guild.GetRole(RumbiConfig.RoleConfig.Streaming);
+                    var guildUser = guild.GetUser(user.Id);
+
+                    Log.Information("Try checking if the user has streaming role already...");
+
+                    if (guildUser.Roles.Any(x => x.Id == streamingRole.Id))
+                    {
+                        Log.Information("Streaming role found.");
+                        return;
+                    }
 
                     var url = streamingActivity.Url;
                     var channelName = url.Split('/').Last();
@@ -102,9 +116,6 @@ namespace Rumbi.Behaviors
 
                     Log.Information($"Hat stream found. Try adding streaming role...");
 
-                    var guild = _client.GetGuild(RumbiConfig.Config.Guild);
-                    var streamingRole = guild.GetRole(RumbiConfig.RoleConfig.Streaming);
-                    var guildUser = guild.GetUser(user.Id);
                     await guildUser.AddRoleAsync(streamingRole);
 
                     Log.Information($"Streaming role added.");
