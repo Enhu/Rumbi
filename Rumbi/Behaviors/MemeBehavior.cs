@@ -21,7 +21,7 @@ namespace Rumbi.Behaviors
 
         private async Task HandleMessageReceived(SocketMessage arg)
         {
-            if (arg.Channel.Id != RumbiConfig.Config.MemeChannel)
+            if (arg.Channel.Id != RumbiConfig.ChannelConfig.BotTalk)
                 return;
 
             if (!_context.Memes.Any(x => x.Trigger == arg.Content))

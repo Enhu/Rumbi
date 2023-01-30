@@ -28,7 +28,7 @@ namespace Rumbi.Behaviors
         {
             var embed = new EmbedBuilder();
 
-            ulong logChannelId = RumbiConfig.Config.LoggingChannel;
+            ulong logChannelId = RumbiConfig.ChannelConfig.BotLogs;
             var rumbiVersion = RumbiConfig.Config.Version;
 
             embed.WithAuthor($"{user.Username}#{user.Discriminator}", user.GetAvatarUrl())
@@ -46,7 +46,7 @@ namespace Rumbi.Behaviors
         {
             var embed = new EmbedBuilder();
 
-            ulong logChannelId = RumbiConfig.Config.LoggingChannel;
+            ulong logChannelId = RumbiConfig.ChannelConfig.BotLogs;
             var rumbiVersion = RumbiConfig.Config.Version;
 
             embed.WithAuthor($"{user.Username}#{user.Discriminator}", user.GetAvatarUrl())
@@ -70,7 +70,7 @@ namespace Rumbi.Behaviors
                     Log.Information($"Old streaming presence found.");
 
                     var guild = _client.GetGuild(RumbiConfig.Config.Guild);
-                    var streamingRole = guild.GetRole(RumbiConfig.Config.Streaming);
+                    var streamingRole = guild.GetRole(RumbiConfig.RoleConfig.Streaming);
                     var guildUser = guild.GetUser(user.Id);
 
                     Log.Information($"Try removing streaming role...");
@@ -103,7 +103,7 @@ namespace Rumbi.Behaviors
                     Log.Information($"Hat stream found. Try adding streaming role...");
 
                     var guild = _client.GetGuild(RumbiConfig.Config.Guild);
-                    var streamingRole = guild.GetRole(RumbiConfig.Config.Streaming);
+                    var streamingRole = guild.GetRole(RumbiConfig.RoleConfig.Streaming);
                     var guildUser = guild.GetUser(user.Id);
                     await guildUser.AddRoleAsync(streamingRole);
 
