@@ -28,8 +28,10 @@ public class Program
             .WriteTo.Console()
             .CreateLogger();
 
+        Log.Information("Loading services...");
+
         _services = new ServiceCollection()
-                .AddDbContext<RumbiContext>(options => options.UseNpgsql(RumbiConfig.Configuration.ConnectionString))
+                .AddDbContext<RumbiContext>(options => options.UseNpgsql(RumbiConfig.Config.ConnectionString))
                 .AddSingleton(_socketConfig)
                 .AddSingleton<DiscordSocketClient>()
                 .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
@@ -39,7 +41,7 @@ public class Program
                 .AddSingleton<TwitchAPI>()
                 .BuildServiceProvider();
 
-        Log.Information($"All services loaded.");
+        Log.Information("All services loaded.");
     }
 
     static void Main(string[] args)
@@ -67,7 +69,7 @@ public class Program
         Log.Information("Logging in...");
         try
         {
-            await client.LoginAsync(TokenType.Bot, RumbiConfig.Configuration.Token);
+            await client.LoginAsync(TokenType.Bot, RumbiConfig.Config.Token);
             await client.StartAsync();
         }
         catch (Exception e)

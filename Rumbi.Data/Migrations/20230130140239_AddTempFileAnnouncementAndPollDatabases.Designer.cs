@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Rumbi.Data;
@@ -11,9 +12,11 @@ using Rumbi.Data;
 namespace Rumbi.Data.Migrations
 {
     [DbContext(typeof(RumbiContext))]
-    partial class RumbiContextModelSnapshot : ModelSnapshot
+    [Migration("20230130140239_AddTempFileAnnouncementAndPollDatabases")]
+    partial class AddTempFileAnnouncementAndPollDatabases
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,7 +55,6 @@ namespace Rumbi.Data.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AnnouncementId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<decimal>("FileId")
@@ -223,8 +225,7 @@ namespace Rumbi.Data.Migrations
                     b.HasOne("Rumbi.Data.Models.Announcement", "Announcement")
                         .WithOne("Attachment")
                         .HasForeignKey("Rumbi.Data.Models.AnnouncementAttachment", "AnnouncementId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Announcement");
                 });

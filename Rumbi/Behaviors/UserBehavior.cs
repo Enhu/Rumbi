@@ -30,8 +30,8 @@ namespace Rumbi.Behaviors
         {
             var embed = new EmbedBuilder();
 
-            ulong logChannelId = RumbiConfig.Configuration.LoggingChannel;
-            var rumbiVersion = RumbiConfig.Configuration.Version;
+            ulong logChannelId = RumbiConfig.Config.LoggingChannel;
+            var rumbiVersion = RumbiConfig.Config.Version;
 
             embed.WithAuthor($"{user.Username}#{user.Discriminator}", user.GetAvatarUrl())
                 .WithColor(0, 135, 245)
@@ -48,8 +48,8 @@ namespace Rumbi.Behaviors
         {
             var embed = new EmbedBuilder();
 
-            ulong logChannelId = RumbiConfig.Configuration.LoggingChannel;
-            var rumbiVersion = RumbiConfig.Configuration.Version;
+            ulong logChannelId = RumbiConfig.Config.LoggingChannel;
+            var rumbiVersion = RumbiConfig.Config.Version;
 
             embed.WithAuthor($"{user.Username}#{user.Discriminator}", user.GetAvatarUrl())
                 .WithColor(0, 135, 245)
@@ -70,8 +70,8 @@ namespace Rumbi.Behaviors
             {
                 if (oldPresence.Activities != null && oldPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) != null)
                 {
-                    var guild = _client.GetGuild(RumbiConfig.Configuration.Guild);
-                    var streamingRole = guild.GetRole(RumbiConfig.Configuration.Streaming);
+                    var guild = _client.GetGuild(RumbiConfig.Config.Guild);
+                    var streamingRole = guild.GetRole(RumbiConfig.Config.Streaming);
                     var guildUser = guild.GetUser(user.Id);
 
                     if (guildUser.Roles.Any(x => x.Id == streamingRole.Id))
@@ -90,8 +90,8 @@ namespace Rumbi.Behaviors
                     if (!string.Equals(game, "A Hat in Time"))
                         return;
 
-                    var guild = _client.GetGuild(RumbiConfig.Configuration.Guild);
-                    var streamingRole = guild.GetRole(RumbiConfig.Configuration.Streaming);
+                    var guild = _client.GetGuild(RumbiConfig.Config.Guild);
+                    var streamingRole = guild.GetRole(RumbiConfig.Config.Streaming);
                     var guildUser = guild.GetUser(user.Id);
                     await guildUser.AddRoleAsync(streamingRole);
                 }
@@ -112,7 +112,7 @@ namespace Rumbi.Behaviors
             {
                 using (var request = new HttpRequestMessage(new HttpMethod("POST"), "https://id.twitch.tv/oauth2/token"))
                 {
-                    request.Content = new StringContent($"client_id={RumbiConfig.Configuration.TwitchClientId}&client_secret={RumbiConfig.Configuration.TwitchSecret}&grant_type=client_credentials");
+                    request.Content = new StringContent($"client_id={RumbiConfig.Config.TwitchClientId}&client_secret={RumbiConfig.Config.TwitchSecret}&grant_type=client_credentials");
                     request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/x-www-form-urlencoded");
 
                     var response = await httpClient.SendAsync(request);
@@ -127,7 +127,7 @@ namespace Rumbi.Behaviors
                 }
             }
 
-            _twitchApi.Settings.ClientId = RumbiConfig.Configuration.TwitchClientId;
+            _twitchApi.Settings.ClientId = RumbiConfig.Config.TwitchClientId;
             _twitchApi.Settings.AccessToken = accessToken;
 
             var user = await _twitchApi.Helix.Users.GetUsersAsync(logins: new List<string>() { channelName });

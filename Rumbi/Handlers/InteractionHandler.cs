@@ -33,7 +33,7 @@ namespace Rumbi.Services
 
         private async Task ReadyAsync()
         {
-            await _handler.RegisterCommandsToGuildAsync(RumbiConfig.Configuration.Guild, true);
+            await _handler.RegisterCommandsToGuildAsync(RumbiConfig.Config.Guild, true);
         }
 
         private async Task HandleInteraction(SocketInteraction interaction)

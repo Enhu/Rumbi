@@ -15,4 +15,23 @@
         public string Version { get; init; } = null!;
 
     }
+
+    public class RoleConfig
+    {
+        public ulong Streaming { get; init; }
+        public ulong Runner { get; init; }
+    }
+
+    public class ChannelConfig
+    {
+        public ulong LbAnnouncements { get; init; }
+
+        public ulong LbVotes { get; init; }
+
+        public ulong BotTalk { get; init; }
+
+        public ulong BotLogs { get; init; }
+
+        public ulong RunnerRole { get; init; }
+    }
 }

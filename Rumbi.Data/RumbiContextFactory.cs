@@ -9,7 +9,7 @@ namespace Rumbi.Data
         public RumbiContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<RumbiContext>()
-                .UseNpgsql(RumbiConfig.Configuration.ConnectionString);
+                .UseNpgsql(RumbiConfig.Config.ConnectionString);
 
             return new RumbiContext(optionsBuilder.Options);
         }

@@ -18,12 +18,11 @@ namespace Rumbi.Modules
 
         [RequireOwner]
         [SlashCommand("save-color-roles", "Finds all the unsaved color roles and tries to save them on the dabatase.")]
-        public async Task ClearColorRoles()
+        public async Task SaveColorRoles()
         {
             await DeferAsync();
 
             var users = Context.Guild.Users.Where(x => x.Roles.Count() > 1);
-            var generalRoles = _dbContext.GuildRoles.ToList();
             var savedCount = 0;
 
             try
@@ -32,8 +31,10 @@ namespace Rumbi.Modules
                 {
                     var colorRole = user.Roles
                         .Where(x => x.Name == user.Username)
-                        .Where(x => !generalRoles.Any(y => y.Id == x.Id))
                         .Where(x => !x.IsManaged)
+                        .Where(x => !x.IsHoisted)
+                        .Where(x => !x.Permissions.KickMembers || !x.Permissions.BanMembers || 
+                        !x.Permissions.ManageGuild || !x.Permissions.Administrator)
                         .FirstOrDefault();
 
                     if (colorRole == null) continue;
@@ -45,9 +46,9 @@ namespace Rumbi.Modules
                     savedCount++;
                 }
 
-                if (savedCount == 0) { await FollowupAsync(text: "No role colors to save.", ephemeral: true); return; }
+                if (savedCount == 0) { await FollowupAsync(text: "No role colors to save."); return; }
 
-                await FollowupAsync(text: $"Successfully saved {savedCount} color roles.", ephemeral: true);
+                await FollowupAsync(text: $"Successfully saved {savedCount} color roles.");
             }
             catch (Exception e)
             {
@@ -68,7 +69,9 @@ namespace Rumbi.Modules
                 var unusedRolesList = string.Join(",\n", Context.Guild.Roles
                     .Where(x => x.Members.Count() == 0)
                     .Where(x => !x.IsManaged)
-                    .Where(x => !x.Permissions.ManageGuild || !x.Permissions.KickMembers)
+                    .Where(x => !x.IsHoisted)
+                    .Where(x => !x.Permissions.KickMembers || !x.Permissions.BanMembers || 
+                    !x.Permissions.ManageGuild || !x.Permissions.Administrator)
                     .Select(x => x.Mention));
 
                 if (!unusedRolesList.Any())
@@ -88,26 +91,31 @@ namespace Rumbi.Modules
             }
 
             [SlashCommand("delete", "Finds all the unused roles and deletes them.")]
-            public async Task DeleteUnusedRoles()
+            public async Task DeleteUnusedRoles([Summary(name: "exclude", description: "The role IDs to excluse in the deletion, separated by commas.")] string? excludes = null)
             {
                 await DeferAsync();
-
-                var unusedRolesList = Context.Guild.Roles
-                    .Where(x => x.Members.Count() == 0)
-                    .Where(x => !x.IsManaged)
-                    .Where(x => !x.Permissions.ManageGuild || !x.Permissions.KickMembers);
-
-                if (!unusedRolesList.Any())
-                {
-                    await FollowupAsync(text: "No unused roles found.");
-                    return;
-                }
 
                 var currentRole = string.Empty;
                 var currentRoleID = string.Empty;
 
                 try
                 {
+                    var rolesToExclude = excludes != null ? excludes.Replace(" ", "").Split(',').Select(ulong.Parse).ToList() 
+                        : new List<ulong>();
+
+                    var unusedRolesList = Context.Guild.Roles
+                        .Where(x => x.Members.Count() == 0)
+                        .Where(x => !x.IsManaged)
+                        .Where(x => !x.IsHoisted)
+                        .Where(x => !x.Permissions.KickMembers || !x.Permissions.BanMembers ||
+                        !x.Permissions.ManageGuild || !x.Permissions.Administrator)
+                        .Where(x => !rolesToExclude.Contains(x.Id));
+
+                    if (!unusedRolesList.Any())
+                    {
+                        await FollowupAsync(text: "No unused roles found.");
+                        return;
+                    }
 
                     foreach (var role in unusedRolesList)
                     {
