@@ -65,60 +65,56 @@ namespace Rumbi.Behaviors
         {
             try
             {
-                if (oldPresence.Activities != null && oldPresence.Activities.Any(x => x.Type == ActivityType.Streaming))
+                var oldStreamingActivity = oldPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) as StreamingGame;
+
+                if (oldStreamingActivity != null)
                 {
-                    Log.Information($"Old streaming presence found.");
+                    var url = oldStreamingActivity.Url;
+                    var channelName = url.Split('/').Last();
+
+                    var accessToken = await _twitchService.Authenticate();
+                    string game = await _twitchService.GetStreamGame(accessToken, channelName);
+
+                    if (!string.IsNullOrEmpty(game))
+                        return;
 
                     var guild = _client.GetGuild(RumbiConfig.Config.Guild);
                     var streamingRole = guild.GetRole(RumbiConfig.RoleConfig.Streaming);
                     var guildUser = guild.GetUser(user.Id);
 
-                    Log.Information($"Try removing streaming role...");
-
-                    if (guildUser.Roles.Any(x => x.Id == streamingRole.Id)) {
-                        Log.Information($"Removed Streaming role.");
-                        await guildUser.RemoveRoleAsync(streamingRole); 
-                        return; 
+                    if (guildUser.Roles.Any(x => x.Id == streamingRole.Id))
+                    {
+                        Log.Information($"Hat stream stopped. Removing streaming role...");
+                        await guildUser.RemoveRoleAsync(streamingRole);
+                        Log.Information($"Done.");
                     }
-                    Log.Information($"No streaming role found.");
                 }
 
                 var streamingActivity = newPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) as StreamingGame;
 
                 if (streamingActivity != null)
                 {
-                    Log.Information($"New streaming presence found, url: {streamingActivity.Url}");
-
                     var guild = _client.GetGuild(RumbiConfig.Config.Guild);
                     var streamingRole = guild.GetRole(RumbiConfig.RoleConfig.Streaming);
                     var guildUser = guild.GetUser(user.Id);
 
-                    Log.Information("Try checking if the user has streaming role already...");
-
                     if (guildUser.Roles.Any(x => x.Id == streamingRole.Id))
-                    {
-                        Log.Information("Streaming role found.");
                         return;
-                    }
 
                     var url = streamingActivity.Url;
                     var channelName = url.Split('/').Last();
 
-                    Log.Information($"Try gettng streaming information..");
-
                     var accessToken = await _twitchService.Authenticate();
                     string game = await _twitchService.GetStreamGame(accessToken, channelName);
-
-                    Log.Information($"Stream game name: {game}");
 
                     if (!string.Equals(game, "A Hat in Time"))
                         return;
 
-                    Log.Information($"Hat stream found. Try adding streaming role...");
+                    Log.Information($"Hat stream found. Adding streaming role...");
 
                     await guildUser.AddRoleAsync(streamingRole);
 
-                    Log.Information($"Streaming role added.");
+                    Log.Information($"Done.");
                 }
             }
             catch (Exception e)
