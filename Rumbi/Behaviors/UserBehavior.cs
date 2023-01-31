@@ -65,7 +65,7 @@ namespace Rumbi.Behaviors
         {
             try
             {
-                var oldStreamingActivity = oldPresence.Activities.FirstOrDefault(x => x.Type == ActivityType.Streaming) as StreamingGame;
+                var oldStreamingActivity = oldPresence.Activities?.FirstOrDefault(x => x.Type == ActivityType.Streaming) as StreamingGame;
 
                 if (oldStreamingActivity != null)
                 {
