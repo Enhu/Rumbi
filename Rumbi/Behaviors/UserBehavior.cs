@@ -73,18 +73,18 @@ namespace Rumbi.Behaviors
                     var channelName = url.Split('/').Last();
                     Log.Information($"Old stream activity, channel name: {channelName}");
 
-                    var accessToken = await _twitchService.Authenticate();
-                    string game = await _twitchService.GetStreamGame(accessToken, channelName);
-
-                    if (!string.IsNullOrEmpty(game))
-                        return;
-
                     var guild = _client.GetGuild(RumbiConfig.Config.Guild);
                     var streamingRole = guild.GetRole(RumbiConfig.RoleConfig.Streaming);
                     var guildUser = guild.GetUser(user.Id);
 
                     if (guildUser.Roles.Any(x => x.Id == streamingRole.Id))
                     {
+                        var accessToken = await _twitchService.Authenticate();
+                        string game = await _twitchService.GetStreamGame(accessToken, channelName);
+
+                        if (!string.IsNullOrEmpty(game))
+                            return;
+                        
                         Log.Information($"Hat stream stopped. Removing streaming role...");
                         await guildUser.RemoveRoleAsync(streamingRole);
                         Log.Information($"Done.");
