@@ -48,7 +48,7 @@ namespace Rumbi.Services
 
                     TwitchStreamResponse json = JsonConvert.DeserializeObject<TwitchStreamResponse>(responseBody);
 
-                    var gameName = json.Data.FirstOrDefault().GameName;
+                    var gameName = json.Data.   FirstOrDefault()?.GameName;
 
                     if (string.IsNullOrEmpty(gameName)) return string.Empty;
                     return gameName;
@@ -74,7 +74,7 @@ namespace Rumbi.Services
         public class TwitchStreamDataResponse
         {
             [JsonProperty("game_name")]
-            public string GameName { get; set; }
+            public string? GameName { get; set; }
         }
     }
 }
