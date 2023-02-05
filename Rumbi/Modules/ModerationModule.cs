@@ -86,14 +86,12 @@ namespace Rumbi.Modules
 
                 if (!validId) { await RespondAsync(text: "Invalid ID"); return; }
 
-                var streamingRole = Context.Guild.GetRole(RumbiConfig.RoleConfig.Streaming);
                 var streamingUser = Context.Guild.Users
                     .Where(x => x.Roles.Any(x => x.Id == RumbiConfig.RoleConfig.Streaming && x.Id == userId)).FirstOrDefault();
 
-                if(streamingRole == null) { await RespondAsync(text: "Couldn't find the streaming role"); return; }
                 if(streamingUser == null) { await RespondAsync(text: "User doesn't have the role."); return; }
 
-                await streamingUser?.RemoveRoleAsync(streamingRole);
+                await streamingUser?.RemoveRoleAsync(RumbiConfig.RoleConfig.Streaming);
 
                 await RespondAsync(text: "Cleared streaming role");
             }

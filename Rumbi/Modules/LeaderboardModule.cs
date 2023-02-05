@@ -89,7 +89,9 @@ namespace Rumbi.Modules
 
             private async Task SendAnnouncementMessageNoPing(AnnouncementModal modal, SocketTextChannel? announcementChannel, Announcement announcement)
             {
-                var announcementMessage = await announcementChannel.SendMessageAsync($"**{modal.AnnouncementTitle}**\n\n{modal.AnnouncementContent}\n\n**Hat moderation team.**");
+                var title = string.IsNullOrEmpty(modal.AnnouncementTitle) ? string.Empty : $"**{modal.AnnouncementTitle}**\n\n";
+
+                var announcementMessage = await announcementChannel.SendMessageAsync($"{title}{modal.AnnouncementContent}\n\n**Hat moderation team.**");
                 
                 if(announcement.Attachment != null)
                     await SendAttachmentMessage(announcementChannel, announcement);
@@ -103,7 +105,9 @@ namespace Rumbi.Modules
             private async Task SendAnnouncementMessagePing(AnnouncementModal modal, SocketTextChannel? announcementChannel, SocketRole? runnerRole, Announcement announcement)
             {
                 await runnerRole.ModifyAsync(x => x.Mentionable = true);
-                var announcementMessage = await announcementChannel.SendMessageAsync($"**{modal.AnnouncementTitle}**\n\n{modal.AnnouncementContent} \n\n**Hat moderation team.** {runnerRole.Mention}");
+
+                var title = string.IsNullOrEmpty(modal.AnnouncementTitle) ? string.Empty : $"**{modal.AnnouncementTitle}**\n\n";
+                var announcementMessage = await announcementChannel.SendMessageAsync($"{title}{modal.AnnouncementContent} \n\n**Hat moderation team.** {runnerRole.Mention}");
 
                 if (announcement.Attachment != null)
                     await SendAttachmentMessage(announcementChannel, announcement);
