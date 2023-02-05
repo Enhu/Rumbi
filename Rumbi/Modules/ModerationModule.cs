@@ -1,8 +1,10 @@
 ﻿using Discord;
 using Discord.Interactions;
 using Rumbi.Data;
+using Rumbi.Data.Config;
 using Rumbi.Data.Models;
 using Serilog;
+using System;
 
 namespace Rumbi.Modules
 {
@@ -54,6 +56,46 @@ namespace Rumbi.Modules
             {
                 Log.Error("An error ocurred trying to save roles on the database.");
                 Log.Error(e, e.Message, e.InnerException);
+            }
+        }
+
+        [Group("streaming", "Group for the streaming role.")]
+        public class StreamingRoleGroup : InteractionModuleBase<SocketInteractionContext>
+        {
+            [SlashCommand("clear-all", "Clears all the streaming roles.")]
+            public async Task ClearAllStreamingRoles()
+            {
+                var streamingRole = Context.Guild.GetRole(RumbiConfig.RoleConfig.Streaming);
+                var streamingUsers = Context.Guild.Users.Where(x => x.Roles.Any(x => x.Id == RumbiConfig.RoleConfig.Streaming)).ToList();
+
+                if (streamingRole == null) { await RespondAsync(text: "Couldn't find the streaming role"); return; }
+                if (streamingUsers.Count < 1) { await RespondAsync(text: "No users using the role."); return; }
+
+                foreach (var user in streamingUsers)
+                {
+                    await user.RemoveRoleAsync(streamingRole);
+                }
+
+                await RespondAsync(text: "Cleared streaming roles");
+            }
+
+            [SlashCommand("clear", "Give a user ID to clear the role.")]
+            public async Task ClearStreamingRole([Summary(name: "ID", description: "The user ID.")] string ulongId)
+            {
+                bool validId = ulong.TryParse(ulongId, out var userId);
+
+                if (!validId) { await RespondAsync(text: "Invalid ID"); return; }
+
+                var streamingRole = Context.Guild.GetRole(RumbiConfig.RoleConfig.Streaming);
+                var streamingUser = Context.Guild.Users
+                    .Where(x => x.Roles.Any(x => x.Id == RumbiConfig.RoleConfig.Streaming && x.Id == userId)).FirstOrDefault();
+
+                if(streamingRole == null) { await RespondAsync(text: "Couldn't find the streaming role"); return; }
+                if(streamingUser == null) { await RespondAsync(text: "User doesn't have the role."); return; }
+
+                await streamingUser?.RemoveRoleAsync(streamingRole);
+
+                await RespondAsync(text: "Cleared streaming role");
             }
         }
 
