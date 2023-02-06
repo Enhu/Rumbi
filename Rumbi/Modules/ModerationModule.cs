@@ -87,7 +87,7 @@ namespace Rumbi.Modules
                 if (!validId) { await RespondAsync(text: "Invalid ID"); return; }
 
                 var streamingUser = Context.Guild.Users
-                    .Where(x => x.Roles.Any(x => x.Id == RumbiConfig.RoleConfig.Streaming && x.Id == userId)).FirstOrDefault();
+                    .Where(x => x.Roles.Any(x => x.Id == RumbiConfig.RoleConfig.Streaming) && x.Id == userId).FirstOrDefault();
 
                 if(streamingUser == null) { await RespondAsync(text: "User doesn't have the role."); return; }
 

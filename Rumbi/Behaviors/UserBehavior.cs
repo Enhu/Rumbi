@@ -65,13 +65,11 @@ namespace Rumbi.Behaviors
         {
             try
             {
-                if(newPresence.Activities.Count == 0) { return; }
-
                 var streamActivity = newPresence.Activities?.FirstOrDefault(x => x.Type == ActivityType.Streaming) as StreamingGame;
 
                 var guildUser = user as SocketGuildUser;
 
-                var userHasRole = (guildUser.Roles.Any(x => x.Id == RumbiConfig.RoleConfig.Streaming));
+                var userHasRole = guildUser.Roles.Any(x => x.Id == RumbiConfig.RoleConfig.Streaming);
 
                 if (streamActivity != null && !userHasRole) 
                 {
