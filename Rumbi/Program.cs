@@ -14,15 +14,24 @@ public class Program
 {
     private readonly IServiceProvider _services;
 
-    private readonly DiscordSocketConfig _socketConfig = new()
-    {
-        GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers | GatewayIntents.GuildPresences | GatewayIntents.MessageContent | GatewayIntents.Guilds,
-        AlwaysDownloadUsers = true,
-    };
+    private readonly RumbiConfig config = new();
+
+    private readonly DiscordSocketConfig _socketConfig =
+        new()
+        {
+            GatewayIntents =
+                GatewayIntents.AllUnprivileged
+                | GatewayIntents.GuildMembers
+                | GatewayIntents.GuildPresences
+                | GatewayIntents.MessageContent
+                | GatewayIntents.Guilds,
+            AlwaysDownloadUsers = true,
+        };
+
     public Program()
     {
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Verbose()
+        Log.Logger = new LoggerConfiguration().MinimumLevel
+            .Verbose()
             .Enrich.FromLogContext()
             .WriteTo.Console()
             .CreateLogger();
@@ -30,37 +39,32 @@ public class Program
         Log.Information("Loading services...");
 
         _services = new ServiceCollection()
-                .AddDbContext<RumbiContext>(options => options.UseNpgsql(RumbiConfig.Config.ConnectionString))
-                .AddSingleton(_socketConfig)
-                .AddSingleton<DiscordSocketClient>()
-                .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
-                .AddSingleton<InteractionHandler>()
-                .AddSingleton<TwitchService>()
-                .AddSingleton<UserBehavior>()
-                .AddSingleton<MemeBehavior>()
-                .BuildServiceProvider();
+            .AddSingleton<RumbiConfig>()
+            .AddDbContext<RumbiContext>(options => options.UseNpgsql(config.ConnectionString))
+            .AddSingleton(_socketConfig)
+            .AddSingleton<DiscordSocketClient>()
+            .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
+            .AddSingleton<InteractionHandler>()
+            .AddSingleton<TwitchService>()
+            .AddSingleton<UserBehavior>()
+            .AddSingleton<MemeBehavior>()
+            .BuildServiceProvider();
 
         Log.Information("All services loaded.");
     }
 
-    static void Main(string[] args)
-        => new Program().RunAsync()
-            .GetAwaiter()
-            .GetResult();
+    static void Main(string[] args) => new Program().RunAsync().GetAwaiter().GetResult();
 
     public async Task RunAsync()
     {
         var client = _services.GetRequiredService<DiscordSocketClient>();
         var interaction = _services.GetRequiredService<InteractionService>();
 
-        await _services.GetRequiredService<InteractionHandler>()
-            .InitializeAsync();
+        await _services.GetRequiredService<InteractionHandler>().InitializeAsync();
 
-        _services.GetRequiredService<UserBehavior>()
-            .Initialize();
+        _services.GetRequiredService<UserBehavior>().Initialize();
 
-        _services.GetRequiredService<MemeBehavior>()
-            .Initialize();
+        _services.GetRequiredService<MemeBehavior>().Initialize();
 
         client.Log += LogAsync;
         interaction.Log += LogAsync;
@@ -68,7 +72,7 @@ public class Program
         Log.Information("Logging in...");
         try
         {
-            await client.LoginAsync(TokenType.Bot, RumbiConfig.Config.Token);
+            await client.LoginAsync(TokenType.Bot, config.Token);
             await client.StartAsync();
         }
         catch (Exception e)
@@ -82,6 +86,7 @@ public class Program
         // Never quit the program until manually forced to.
         await Task.Delay(Timeout.Infinite);
     }
+
     private static Task LogAsync(LogMessage message)
     {
         var severity = message.Severity switch
@@ -95,9 +100,14 @@ public class Program
             _ => LogEventLevel.Information
         };
 
-        Log.Write(severity, message.Exception, "[{Source}] {Message}", message.Source, message.Message);
+        Log.Write(
+            severity,
+            message.Exception,
+            "[{Source}] {Message}",
+            message.Source,
+            message.Message
+        );
 
         return Task.CompletedTask;
     }
-
 }

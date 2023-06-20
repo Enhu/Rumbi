@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Rumbi.Data.Config;
+using Rumbi.Data.Models;
 using Rumbi.Services;
 using Serilog;
 
@@ -10,11 +11,17 @@ namespace Rumbi.Behaviors
     {
         private readonly DiscordSocketClient _client;
         private readonly TwitchService _twitchService;
+        private readonly RumbiConfig _config;
 
-        public UserBehavior(DiscordSocketClient client, TwitchService twitchService)
+        public UserBehavior(
+            DiscordSocketClient client,
+            TwitchService twitchService,
+            RumbiConfig config
+        )
         {
             _client = client;
             _twitchService = twitchService;
+            _config = config;
         }
 
         public void Initialize()
@@ -28,10 +35,11 @@ namespace Rumbi.Behaviors
         {
             var embed = new EmbedBuilder();
 
-            ulong logChannelId = RumbiConfig.ChannelConfig.BotLogs;
-            var rumbiVersion = RumbiConfig.Config.Version;
+            ulong logChannelId = _config.ChannelConfig.Logs;
+            var rumbiVersion = _config.Version;
 
-            embed.WithAuthor($"{user.Username}#{user.Discriminator}", user.GetAvatarUrl())
+            embed
+                .WithAuthor($"{user.Username}#{user.Discriminator}", user.GetAvatarUrl())
                 .WithColor(0, 135, 245)
                 .WithFooter($"ID: {user.Id} | Rumbi {rumbiVersion}", user.GetAvatarUrl())
                 .WithTimestamp(DateTime.Now)
@@ -46,10 +54,11 @@ namespace Rumbi.Behaviors
         {
             var embed = new EmbedBuilder();
 
-            ulong logChannelId = RumbiConfig.ChannelConfig.BotLogs;
-            var rumbiVersion = RumbiConfig.Config.Version;
+            ulong logChannelId = _config.ChannelConfig.Logs;
+            var rumbiVersion = _config.Version;
 
-            embed.WithAuthor($"{user.Username}#{user.Discriminator}", user.GetAvatarUrl())
+            embed
+                .WithAuthor($"{user.Username}#{user.Discriminator}", user.GetAvatarUrl())
                 .WithColor(0, 135, 245)
                 .WithFooter($"ID: {user.Id} | Rumbi {rumbiVersion}", user.GetAvatarUrl())
                 .WithTimestamp(DateTime.Now)
@@ -60,18 +69,23 @@ namespace Rumbi.Behaviors
             await logChannel.SendMessageAsync(embed: embed.Build());
         }
 
-        private async Task HandleUserPresenceUpdated(SocketUser user, SocketPresence oldPresence,
-            SocketPresence newPresence)
+        private async Task HandleUserPresenceUpdated(
+            SocketUser user,
+            SocketPresence oldPresence,
+            SocketPresence newPresence
+        )
         {
             try
             {
-                var streamActivity = newPresence.Activities?.FirstOrDefault(x => x.Type == ActivityType.Streaming) as StreamingGame;
+                var streamActivity =
+                    newPresence.Activities?.FirstOrDefault(x => x.Type == ActivityType.Streaming)
+                    as StreamingGame;
 
                 var guildUser = user as SocketGuildUser;
 
-                var userHasRole = guildUser.Roles.Any(x => x.Id == RumbiConfig.RoleConfig.Streaming);
+                var userHasRole = guildUser.Roles.Any(x => x.Id == _config.RoleConfig.Streaming);
 
-                if (streamActivity != null && !userHasRole) 
+                if (streamActivity != null && !userHasRole)
                 {
                     var url = streamActivity.Url;
                     var channelName = url.Split('/').Last();
@@ -79,19 +93,20 @@ namespace Rumbi.Behaviors
                     var accessToken = await _twitchService.Authenticate();
                     string game = await _twitchService.GetStreamGame(accessToken, channelName);
 
-                    if(string.Equals(game, "A Hat in Time"))
+                    if (string.Equals(game, "A Hat in Time"))
                     {
-                        Log.Information($"New Hat stream detected. Channel: {channelName}, User: {guildUser.Username}");
-                        await guildUser.AddRoleAsync(RumbiConfig.RoleConfig.Streaming);
+                        Log.Information(
+                            $"New Hat stream detected. Channel: {channelName}, User: {guildUser.Username}"
+                        );
+                        await guildUser.AddRoleAsync(_config.RoleConfig.Streaming);
                         Log.Information("Streaming role added.");
                     }
-
                 }
 
-                if(streamActivity == null && userHasRole)
+                if (streamActivity == null && userHasRole)
                 {
                     Log.Information($"Hat stream stopped. User: {guildUser.Username}");
-                    await guildUser.RemoveRoleAsync(RumbiConfig.RoleConfig.Streaming);
+                    await guildUser.RemoveRoleAsync(_config.RoleConfig.Streaming);
                     Log.Information("Streaming role removed.");
                 }
             }
@@ -100,7 +115,6 @@ namespace Rumbi.Behaviors
                 Log.Error("An error ocurred");
                 Log.Error(e, e.Message, e.InnerException);
             }
-
         }
     }
 }

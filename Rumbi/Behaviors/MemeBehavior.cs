@@ -8,10 +8,13 @@ namespace Rumbi.Behaviors
     {
         private readonly DiscordSocketClient _client;
         private readonly RumbiContext _context;
-        public MemeBehavior(DiscordSocketClient client, RumbiContext context)
+        private readonly RumbiConfig _config;
+
+        public MemeBehavior(DiscordSocketClient client, RumbiContext context, RumbiConfig config)
         {
             _client = client;
             _context = context;
+            _config = config;
         }
 
         public void Initialize()
@@ -21,13 +24,15 @@ namespace Rumbi.Behaviors
 
         private async Task HandleMessageReceived(SocketMessage arg)
         {
-            if (arg.Channel.Id != RumbiConfig.ChannelConfig.BotTalk)
+            if (arg.Channel.Id != _config.ChannelConfig.Bot)
                 return;
 
             if (!_context.Memes.Any(x => x.Trigger == arg.Content))
                 return;
 
-            await arg.Channel.SendMessageAsync(_context.Memes.FirstOrDefault(x => x.Trigger == arg.Content).Content);
+            await arg.Channel.SendMessageAsync(
+                _context.Memes.FirstOrDefault(x => x.Trigger == arg.Content).Content
+            );
         }
     }
 }

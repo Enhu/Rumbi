@@ -11,12 +11,19 @@ namespace Rumbi.Services
         private readonly DiscordSocketClient _client;
         private readonly InteractionService _handler;
         private readonly IServiceProvider _services;
+        private readonly RumbiConfig _config;
 
-        public InteractionHandler(DiscordSocketClient client, InteractionService handler, IServiceProvider services)
+        public InteractionHandler(
+            DiscordSocketClient client,
+            InteractionService handler,
+            IServiceProvider services,
+            RumbiConfig config
+        )
         {
             _client = client;
             _handler = handler;
             _services = services;
+            _config = config;
         }
 
         public async Task InitializeAsync()
@@ -33,7 +40,7 @@ namespace Rumbi.Services
 
         private async Task ReadyAsync()
         {
-            await _handler.RegisterCommandsToGuildAsync(RumbiConfig.Config.Guild, true);
+            await _handler.RegisterCommandsToGuildAsync(_config.Guild, true);
         }
 
         private async Task HandleInteraction(SocketInteraction interaction)
@@ -61,7 +68,9 @@ namespace Rumbi.Services
                 // If Slash Command execution fails it is most likely that the original interaction acknowledgement will persist. It is a good idea to delete the original
                 // response, or at least let the user know that something went wrong during the command execution.
                 if (interaction.Type is InteractionType.ApplicationCommand)
-                    await interaction.GetOriginalResponseAsync().ContinueWith(async (msg) => await msg.Result.DeleteAsync());
+                    await interaction
+                        .GetOriginalResponseAsync()
+                        .ContinueWith(async (msg) => await msg.Result.DeleteAsync());
             }
         }
     }

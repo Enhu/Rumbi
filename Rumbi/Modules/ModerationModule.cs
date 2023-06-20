@@ -19,12 +19,15 @@ namespace Rumbi.Modules
         }
 
         [RequireOwner]
-        [SlashCommand("save-color-roles", "Finds all the unsaved color roles and tries to save them on the dabatase.")]
+        [SlashCommand(
+            "save-color-roles",
+            "Finds all the unsaved color roles and tries to save them on the dabatase."
+        )]
         public async Task SaveColorRoles()
         {
             await DeferAsync();
 
-            var users = Context.Guild.Users.Where(x => x.Roles.Count() > 1);
+            var users = Context.Guild.Users.Where(x => x.Roles.Count > 1);
             var savedCount = 0;
 
             try
@@ -35,20 +38,39 @@ namespace Rumbi.Modules
                         .Where(x => x.Name == user.Username)
                         .Where(x => !x.IsManaged)
                         .Where(x => !x.IsHoisted)
-                        .Where(x => !x.Permissions.KickMembers || !x.Permissions.BanMembers || 
-                        !x.Permissions.ManageGuild || !x.Permissions.Administrator)
+                        .Where(
+                            x =>
+                                !x.Permissions.KickMembers
+                                || !x.Permissions.BanMembers
+                                || !x.Permissions.ManageGuild
+                                || !x.Permissions.Administrator
+                        )
                         .FirstOrDefault();
 
-                    if (colorRole == null) continue;
-                    if (_dbContext.GuildUsers.Any(x => x.Id == user.Id)) continue;
+                    if (colorRole == null)
+                        continue;
+                    if (_dbContext.GuildUsers.Any(x => x.Id == user.Id))
+                        continue;
 
-                    _dbContext.GuildUsers.Add(new User { Id = user.Id, ColorRoleId = colorRole.Id, Color = colorRole.Color.RawValue, Username = user.Username });
+                    _dbContext.GuildUsers.Add(
+                        new User
+                        {
+                            Id = user.Id,
+                            ColorRoleId = colorRole.Id,
+                            Color = colorRole.Color.RawValue,
+                            Username = user.Username
+                        }
+                    );
                     _dbContext.SaveChanges();
 
                     savedCount++;
                 }
 
-                if (savedCount == 0) { await FollowupAsync(text: "No role colors to save."); return; }
+                if (savedCount == 0)
+                {
+                    await FollowupAsync(text: "No role colors to save.");
+                    return;
+                }
 
                 await FollowupAsync(text: $"Successfully saved {savedCount} color roles.");
             }
@@ -62,14 +84,31 @@ namespace Rumbi.Modules
         [Group("streaming", "Group for the streaming role.")]
         public class StreamingRoleGroup : InteractionModuleBase<SocketInteractionContext>
         {
+            private readonly RumbiConfig _config;
+
+            public StreamingRoleGroup(RumbiConfig config)
+            {
+                _config = config;
+            }
+
             [SlashCommand("clear-all", "Clears all the streaming roles.")]
             public async Task ClearAllStreamingRoles()
             {
-                var streamingRole = Context.Guild.GetRole(RumbiConfig.RoleConfig.Streaming);
-                var streamingUsers = Context.Guild.Users.Where(x => x.Roles.Any(x => x.Id == RumbiConfig.RoleConfig.Streaming)).ToList();
+                var streamingRole = Context.Guild.GetRole(_config.RoleConfig.Streaming);
+                var streamingUsers = Context.Guild.Users
+                    .Where(x => x.Roles.Any(x => x.Id == _config.RoleConfig.Streaming))
+                    .ToList();
 
-                if (streamingRole == null) { await RespondAsync(text: "Couldn't find the streaming role"); return; }
-                if (streamingUsers.Count < 1) { await RespondAsync(text: "No users using the role."); return; }
+                if (streamingRole == null)
+                {
+                    await RespondAsync(text: "Couldn't find the streaming role");
+                    return;
+                }
+                if (streamingUsers.Count < 1)
+                {
+                    await RespondAsync(text: "No users using the role.");
+                    return;
+                }
 
                 foreach (var user in streamingUsers)
                 {
@@ -80,18 +119,32 @@ namespace Rumbi.Modules
             }
 
             [SlashCommand("clear", "Give a user ID to clear the role.")]
-            public async Task ClearStreamingRole([Summary(name: "ID", description: "The user ID.")] string ulongId)
+            public async Task ClearStreamingRole(
+                [Summary(name: "ID", description: "The user ID.")] string ulongId
+            )
             {
                 bool validId = ulong.TryParse(ulongId, out var userId);
 
-                if (!validId) { await RespondAsync(text: "Invalid ID"); return; }
+                if (!validId)
+                {
+                    await RespondAsync(text: "Invalid ID");
+                    return;
+                }
 
                 var streamingUser = Context.Guild.Users
-                    .Where(x => x.Roles.Any(x => x.Id == RumbiConfig.RoleConfig.Streaming) && x.Id == userId).FirstOrDefault();
+                    .Where(
+                        x =>
+                            x.Roles.Any(x => x.Id == _config.RoleConfig.Streaming) && x.Id == userId
+                    )
+                    .FirstOrDefault();
 
-                if(streamingUser == null) { await RespondAsync(text: "User doesn't have the role."); return; }
+                if (streamingUser == null)
+                {
+                    await RespondAsync(text: "User doesn't have the role.");
+                    return;
+                }
 
-                await streamingUser?.RemoveRoleAsync(RumbiConfig.RoleConfig.Streaming);
+                await streamingUser?.RemoveRoleAsync(_config.RoleConfig.Streaming);
 
                 await RespondAsync(text: "Cleared streaming role");
             }
@@ -106,13 +159,21 @@ namespace Rumbi.Modules
             {
                 await DeferAsync();
 
-                var unusedRolesList = string.Join(",\n", Context.Guild.Roles
-                    .Where(x => x.Members.Count() == 0)
-                    .Where(x => !x.IsManaged)
-                    .Where(x => !x.IsHoisted)
-                    .Where(x => !x.Permissions.KickMembers || !x.Permissions.BanMembers || 
-                    !x.Permissions.ManageGuild || !x.Permissions.Administrator)
-                    .Select(x => x.Mention));
+                var unusedRolesList = string.Join(
+                    ",\n",
+                    Context.Guild.Roles
+                        .Where(x => !x.Members.Any())
+                        .Where(x => !x.IsManaged)
+                        .Where(x => !x.IsHoisted)
+                        .Where(
+                            x =>
+                                !x.Permissions.KickMembers
+                                || !x.Permissions.BanMembers
+                                || !x.Permissions.ManageGuild
+                                || !x.Permissions.Administrator
+                        )
+                        .Select(x => x.Mention)
+                );
 
                 if (!unusedRolesList.Any())
                 {
@@ -131,7 +192,13 @@ namespace Rumbi.Modules
             }
 
             [SlashCommand("delete", "Finds all the unused roles and deletes them.")]
-            public async Task DeleteUnusedRoles([Summary(name: "exclude", description: "The role IDs to excluse in the deletion, separated by commas.")] string? excludes = null)
+            public async Task DeleteUnusedRoles(
+                [Summary(
+                    name: "exclude",
+                    description: "The role IDs to excluse in the deletion, separated by commas."
+                )]
+                    string? excludes = null
+            )
             {
                 await DeferAsync();
 
@@ -140,15 +207,22 @@ namespace Rumbi.Modules
 
                 try
                 {
-                    var rolesToExclude = excludes != null ? excludes.Replace(" ", "").Split(',').Select(ulong.Parse).ToList() 
-                        : new List<ulong>();
+                    var rolesToExclude =
+                        excludes != null
+                            ? excludes.Replace(" ", "").Split(',').Select(ulong.Parse).ToList()
+                            : new List<ulong>();
 
                     var unusedRolesList = Context.Guild.Roles
-                        .Where(x => x.Members.Count() == 0)
+                        .Where(x => !x.Members.Any())
                         .Where(x => !x.IsManaged)
                         .Where(x => !x.IsHoisted)
-                        .Where(x => !x.Permissions.KickMembers || !x.Permissions.BanMembers ||
-                        !x.Permissions.ManageGuild || !x.Permissions.Administrator)
+                        .Where(
+                            x =>
+                                !x.Permissions.KickMembers
+                                || !x.Permissions.BanMembers
+                                || !x.Permissions.ManageGuild
+                                || !x.Permissions.Administrator
+                        )
                         .Where(x => !rolesToExclude.Contains(x.Id));
 
                     if (!unusedRolesList.Any())
@@ -163,12 +237,15 @@ namespace Rumbi.Modules
                         currentRoleID = role.Id.ToString();
                         await role.DeleteAsync();
                     }
-
                 }
                 catch (Exception e)
                 {
-                    await FollowupAsync(text: "An error ocurred. Check the logs for more information.");
-                    Log.Error($"An error ocurred trying to delete role: name:  {currentRole}, ID: {currentRoleID} ");
+                    await FollowupAsync(
+                        text: "An error ocurred. Check the logs for more information."
+                    );
+                    Log.Error(
+                        $"An error ocurred trying to delete role: name:  {currentRole}, ID: {currentRoleID} "
+                    );
                     Log.Error(e, e.Message, e.InnerException);
                     return;
                 }

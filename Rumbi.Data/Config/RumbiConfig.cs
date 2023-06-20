@@ -4,12 +4,79 @@ namespace Rumbi.Data.Config
 {
     public class RumbiConfig
     {
-        private static readonly IConfigurationRoot AppSettings
-    = new ConfigurationBuilder().AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: false, reloadOnChange: true).Build();
+        public string Token { get; set; } = string.Empty;
 
-        public static BotConfig Config { get; } = AppSettings.Get<BotConfig>();
+        public string ConnectionString { get; set; } = string.Empty;
+        public string TwitchClientId { get; set; } = string.Empty;
+        public string TwitchSecret { get; set; } = string.Empty;
 
-        public static RoleConfig RoleConfig { get; } = AppSettings.GetSection("Roles").Get<RoleConfig>();
-        public static ChannelConfig ChannelConfig { get; } = AppSettings.GetSection("Channels").Get<ChannelConfig>();
+        public ulong Guild { get; set; } = 0;
+        public string Version { get; set; } = string.Empty;
+
+        public RoleConfig RoleConfig { get; set; }
+        public ChannelConfig ChannelConfig { get; set; }
+
+        public RumbiConfig()
+        {
+#if DEBUG
+            var envPath = Path.Combine("..", "Rumbi", ".env");
+            DotNetEnv.Env.Load(envPath);
+#endif
+
+            string dbServer = Environment.GetEnvironmentVariable("DB_SERVER");
+            string dbPort = Environment.GetEnvironmentVariable("DB_PORT");
+            string dbUserId = Environment.GetEnvironmentVariable("DB_USERID");
+            string dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+            string database = Environment.GetEnvironmentVariable("DB_NAME");
+
+            ConnectionString = string.Format(
+                "Server={0};Port={1};Database={4};User Id={2};Password={3}",
+                dbServer,
+                dbPort,
+                dbUserId,
+                dbPassword,
+                database
+            );
+
+            Token = Environment.GetEnvironmentVariable("TOKEN");
+            Version = Environment.GetEnvironmentVariable("VERSION");
+            Guild = ulong.Parse(Environment.GetEnvironmentVariable("GUILD"));
+            TwitchClientId = Environment.GetEnvironmentVariable("TWITCH_CLIENTID");
+            TwitchSecret = Environment.GetEnvironmentVariable("TWITCH_SECRET");
+
+            RoleConfig = new()
+            {
+                Runner = ulong.Parse(Environment.GetEnvironmentVariable("RUNNER_ROLE")),
+                Streaming = ulong.Parse(Environment.GetEnvironmentVariable("STREAMING_ROLE"))
+            };
+
+            ChannelConfig = new()
+            {
+                LbAnnouncements = ulong.Parse(Environment.GetEnvironmentVariable("LBANN_CH")),
+                LbVotes = ulong.Parse(Environment.GetEnvironmentVariable("LBVOTES_CH")),
+                Bot = ulong.Parse(Environment.GetEnvironmentVariable("BOT_CH")),
+                Logs = ulong.Parse(Environment.GetEnvironmentVariable("LOG_CH")),
+                Runner = ulong.Parse(Environment.GetEnvironmentVariable("RUNNER_CH")),
+            };
+        }
+    }
+
+    public class RoleConfig
+    {
+        public ulong Streaming { get; set; } = 0;
+        public ulong Runner { get; set; } = 0;
+    }
+
+    public class ChannelConfig
+    {
+        public ulong LbAnnouncements { get; set; } = 0;
+
+        public ulong LbVotes { get; set; } = 0;
+
+        public ulong Bot { get; set; } = 0;
+
+        public ulong Logs { get; set; } = 0;
+
+        public ulong Runner { get; set; } = 0;
     }
 }

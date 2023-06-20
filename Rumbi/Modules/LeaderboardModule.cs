@@ -8,7 +8,9 @@ using Serilog;
 
 namespace Rumbi.Modules
 {
-    [DefaultMemberPermissions(GuildPermission.ManageGuild & GuildPermission.KickMembers & GuildPermission.BanMembers)]
+    [DefaultMemberPermissions(
+        GuildPermission.ManageGuild & GuildPermission.KickMembers & GuildPermission.BanMembers
+    )]
     public class LeaderboardModule : InteractionModuleBase<SocketInteractionContext>
     {
         [SlashCommand("poll", "Create a new leadearboard poll")]
@@ -27,17 +29,24 @@ namespace Rumbi.Modules
         public class AnnouncementGroup : InteractionModuleBase<SocketInteractionContext>
         {
             private readonly RumbiContext _dbContext;
+            private readonly RumbiConfig _config;
 
             private static readonly Random random = new();
 
-            public AnnouncementGroup(RumbiContext context)
+            public AnnouncementGroup(RumbiContext context, RumbiConfig config)
             {
                 _dbContext = context;
+                _config = config;
             }
 
             [SlashCommand("ping", "Pings the runner role.")]
             public async Task CreateLeaderboardAnnouncementWithPing(
-                [Summary(name: "attachment", description: "Any type of attachment, from an image to a file. ")] IAttachment? file = null)
+                [Summary(
+                    name: "attachment",
+                    description: "Any type of attachment, from an image to a file. "
+                )]
+                    IAttachment? file = null
+            )
             {
                 HandleAttachment(file);
 
@@ -46,7 +55,12 @@ namespace Rumbi.Modules
 
             [SlashCommand("no-ping", "For announcements that don't need pings.")]
             public async Task CreateLeaderboardAnnouncementWithoutPing(
-                [Summary(name: "attachment", description: "Any type of attachment, from an image to a file. ")] IAttachment? file = null)
+                [Summary(
+                    name: "attachment",
+                    description: "Any type of attachment, from an image to a file. "
+                )]
+                    IAttachment? file = null
+            )
             {
                 HandleAttachment(file);
 
@@ -58,11 +72,24 @@ namespace Rumbi.Modules
             {
                 await DeferAsync();
 
-                var announcementChannel = Context.Guild.Channels.FirstOrDefault(x => x.Id == RumbiConfig.ChannelConfig.LbAnnouncements) as SocketTextChannel;
-                var runnerRole = Context.Guild.Roles.FirstOrDefault(x => x.Id == RumbiConfig.RoleConfig.Runner);
+                var announcementChannel =
+                    Context.Guild.Channels.FirstOrDefault(
+                        x => x.Id == _config.ChannelConfig.LbAnnouncements
+                    ) as SocketTextChannel;
+                var runnerRole = Context.Guild.Roles.FirstOrDefault(
+                    x => x.Id == _config.RoleConfig.Runner
+                );
 
-                if (announcementChannel == null) { await FollowupAsync("The announcement channel doesn't exist.", ephemeral: true); return; }
-                if (ping && runnerRole == null) { await FollowupAsync("The runner role doesn't exist.", ephemeral: true); return; }
+                if (announcementChannel == null)
+                {
+                    await FollowupAsync("The announcement channel doesn't exist.", ephemeral: true);
+                    return;
+                }
+                if (ping && runnerRole == null)
+                {
+                    await FollowupAsync("The runner role doesn't exist.", ephemeral: true);
+                    return;
+                }
 
                 try
                 {
@@ -70,11 +97,20 @@ namespace Rumbi.Modules
 
                     if (ping)
                     {
-                        await SendAnnouncementMessagePing(modal, announcementChannel, runnerRole, announcement);
+                        await SendAnnouncementMessagePing(
+                            modal,
+                            announcementChannel,
+                            runnerRole,
+                            announcement
+                        );
                     }
                     else
                     {
-                        await SendAnnouncementMessageNoPing(modal, announcementChannel, announcement);
+                        await SendAnnouncementMessageNoPing(
+                            modal,
+                            announcementChannel,
+                            announcement
+                        );
                     }
 
                     await FollowupAsync("Announcement sent!", ephemeral: true);
@@ -83,17 +119,28 @@ namespace Rumbi.Modules
                 {
                     Log.Error("An error ocurred trying to send an announcement.");
                     Log.Error(e, e.Message, e.InnerException);
-                    await FollowupAsync("An error ocurred. Please contact an admin for help.", ephemeral: true);
+                    await FollowupAsync(
+                        "An error ocurred. Please contact an admin for help.",
+                        ephemeral: true
+                    );
                 }
             }
 
-            private async Task SendAnnouncementMessageNoPing(AnnouncementModal modal, SocketTextChannel? announcementChannel, Announcement announcement)
+            private async Task SendAnnouncementMessageNoPing(
+                AnnouncementModal modal,
+                SocketTextChannel? announcementChannel,
+                Announcement announcement
+            )
             {
-                var title = string.IsNullOrEmpty(modal.AnnouncementTitle) ? string.Empty : $"**{modal.AnnouncementTitle}**\n\n";
+                var title = string.IsNullOrEmpty(modal.AnnouncementTitle)
+                    ? string.Empty
+                    : $"**{modal.AnnouncementTitle}**\n\n";
 
-                var announcementMessage = await announcementChannel.SendMessageAsync($"{title}{modal.AnnouncementContent}\n\n**Hat moderation team.**");
-                
-                if(announcement.Attachment != null)
+                var announcementMessage = await announcementChannel.SendMessageAsync(
+                    $"{title}{modal.AnnouncementContent}\n\n**Hat moderation team.**"
+                );
+
+                if (announcement.Attachment != null)
                     await SendAttachmentMessage(announcementChannel, announcement);
 
                 announcement.MessageId = announcementMessage.Id;
@@ -102,12 +149,21 @@ namespace Rumbi.Modules
                 _dbContext.SaveChanges();
             }
 
-            private async Task SendAnnouncementMessagePing(AnnouncementModal modal, SocketTextChannel? announcementChannel, SocketRole? runnerRole, Announcement announcement)
+            private async Task SendAnnouncementMessagePing(
+                AnnouncementModal modal,
+                SocketTextChannel? announcementChannel,
+                SocketRole? runnerRole,
+                Announcement announcement
+            )
             {
                 await runnerRole.ModifyAsync(x => x.Mentionable = true);
 
-                var title = string.IsNullOrEmpty(modal.AnnouncementTitle) ? string.Empty : $"**{modal.AnnouncementTitle}**\n\n";
-                var announcementMessage = await announcementChannel.SendMessageAsync($"{title}{modal.AnnouncementContent} \n\n**Hat moderation team.** {runnerRole.Mention}");
+                var title = string.IsNullOrEmpty(modal.AnnouncementTitle)
+                    ? string.Empty
+                    : $"**{modal.AnnouncementTitle}**\n\n";
+                var announcementMessage = await announcementChannel.SendMessageAsync(
+                    $"{title}{modal.AnnouncementContent} \n\n**Hat moderation team.** {runnerRole.Mention}"
+                );
 
                 if (announcement.Attachment != null)
                     await SendAttachmentMessage(announcementChannel, announcement);
@@ -120,10 +176,17 @@ namespace Rumbi.Modules
                 _dbContext.SaveChanges();
             }
 
-            private static async Task SendAttachmentMessage(SocketTextChannel? announcementChannel, Announcement announcement)
+            private static async Task SendAttachmentMessage(
+                SocketTextChannel? announcementChannel,
+                Announcement announcement
+            )
             {
-                var attachmentUrl = string.Format("https://cdn.discordapp.com/ephemeral-attachments/{0}/{1}/{2}",
-                    announcement.Attachment.MediumId, announcement.Attachment.FileId, announcement.Attachment.FileName);
+                var attachmentUrl = string.Format(
+                    "https://cdn.discordapp.com/ephemeral-attachments/{0}/{1}/{2}",
+                    announcement.Attachment.MediumId,
+                    announcement.Attachment.FileId,
+                    announcement.Attachment.FileName
+                );
                 var attachmentMessageId = await announcementChannel.SendMessageAsync(attachmentUrl);
 
                 announcement.Attachment.MessageId = attachmentMessageId.Id;
@@ -165,7 +228,8 @@ namespace Rumbi.Modules
                 _dbContext.TemporalFiles.RemoveRange(_dbContext.TemporalFiles);
                 _dbContext.SaveChanges();
 
-                if (attachment == null) return;
+                if (attachment == null)
+                    return;
 
                 var tempFile = new TemporalFile
                 {
@@ -181,8 +245,7 @@ namespace Rumbi.Modules
             private static string RandomString()
             {
                 const string pool = "abcdefghijklmnopqrstuvwxyz0123456789";
-                var chars = Enumerable.Range(0, 5)
-                    .Select(x => pool[random.Next(0, pool.Length)]);
+                var chars = Enumerable.Range(0, 5).Select(x => pool[random.Next(0, pool.Length)]);
                 return new string(chars.ToArray());
             }
         }
@@ -193,11 +256,21 @@ namespace Rumbi.Modules
 
             [InputLabel("Announcement Title")]
             [RequiredInput(false)]
-            [ModalTextInput("announcement_title", TextInputStyle.Short, placeholder: "A simple title for the announcement (optional).", maxLength: 50)]
+            [ModalTextInput(
+                "announcement_title",
+                TextInputStyle.Short,
+                placeholder: "A simple title for the announcement (optional).",
+                maxLength: 50
+            )]
             public string AnnouncementTitle { get; set; } = string.Empty;
 
             [InputLabel("Content")]
-            [ModalTextInput("announcement_content", TextInputStyle.Paragraph, placeholder: "The content of the announcement.", maxLength: 3900)]
+            [ModalTextInput(
+                "announcement_content",
+                TextInputStyle.Paragraph,
+                placeholder: "The content of the announcement.",
+                maxLength: 3900
+            )]
             public string AnnouncementContent { get; set; }
         }
     }
