@@ -47,7 +47,8 @@ namespace Rumbi.Data.Config
             RoleConfig = new()
             {
                 Runner = ulong.Parse(Environment.GetEnvironmentVariable("RUNNER_ROLE")),
-                Streaming = ulong.Parse(Environment.GetEnvironmentVariable("STREAMING_ROLE"))
+                Streaming = ulong.Parse(Environment.GetEnvironmentVariable("STREAMING_ROLE")),
+                Verifier = ulong.Parse(Environment.GetEnvironmentVariable("VERIFIER_ROLE"))
             };
 
             ChannelConfig = new()
@@ -65,6 +66,7 @@ namespace Rumbi.Data.Config
     {
         public ulong Streaming { get; set; } = 0;
         public ulong Runner { get; set; } = 0;
+        public ulong Verifier { get; set; } = 0;
     }
 
     public class ChannelConfig
