@@ -11,12 +11,12 @@ namespace Rumbi.Behaviors
     {
         private readonly DiscordSocketClient _client;
         private readonly TwitchService _twitchService;
-        private readonly RumbiConfig _config;
+        private readonly AppConfig _config;
 
         public UserBehavior(
             DiscordSocketClient client,
             TwitchService twitchService,
-            RumbiConfig config
+            AppConfig config
         )
         {
             _client = client;

@@ -11,13 +11,13 @@ namespace Rumbi.Services
         private readonly DiscordSocketClient _client;
         private readonly InteractionService _handler;
         private readonly IServiceProvider _services;
-        private readonly RumbiConfig _config;
+        private readonly AppConfig _config;
 
         public InteractionHandler(
             DiscordSocketClient client,
             InteractionService handler,
             IServiceProvider services,
-            RumbiConfig config
+            AppConfig config
         )
         {
             _client = client;

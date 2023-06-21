@@ -8,9 +8,9 @@ namespace Rumbi.Behaviors
     {
         private readonly DiscordSocketClient _client;
         private readonly RumbiContext _context;
-        private readonly RumbiConfig _config;
+        private readonly AppConfig _config;
 
-        public MemeBehavior(DiscordSocketClient client, RumbiContext context, RumbiConfig config)
+        public MemeBehavior(DiscordSocketClient client, RumbiContext context, AppConfig config)
         {
             _client = client;
             _context = context;

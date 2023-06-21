@@ -2,7 +2,7 @@
 
 namespace Rumbi.Data.Config
 {
-    public class RumbiConfig
+    public class AppConfig
     {
         public string Token { get; set; } = string.Empty;
 
@@ -16,7 +16,7 @@ namespace Rumbi.Data.Config
         public RoleConfig RoleConfig { get; set; }
         public ChannelConfig ChannelConfig { get; set; }
 
-        public RumbiConfig()
+        public AppConfig()
         {
 #if DEBUG
             var envPath = Path.Combine("..", "Rumbi", ".env");

@@ -14,7 +14,7 @@ public class Program
 {
     private readonly IServiceProvider _services;
 
-    private readonly RumbiConfig config = new();
+    private readonly AppConfig config = new();
 
     private readonly DiscordSocketConfig _socketConfig =
         new()
@@ -39,7 +39,7 @@ public class Program
         Log.Information("Loading services...");
 
         _services = new ServiceCollection()
-            .AddSingleton<RumbiConfig>()
+            .AddSingleton<AppConfig>()
             .AddDbContext<RumbiContext>(options => options.UseNpgsql(config.ConnectionString))
             .AddSingleton(_socketConfig)
             .AddSingleton<DiscordSocketClient>()

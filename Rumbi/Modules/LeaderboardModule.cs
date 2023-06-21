@@ -29,11 +29,11 @@ namespace Rumbi.Modules
         public class AnnouncementGroup : InteractionModuleBase<SocketInteractionContext>
         {
             private readonly RumbiContext _dbContext;
-            private readonly RumbiConfig _config;
+            private readonly AppConfig _config;
 
             private static readonly Random random = new();
 
-            public AnnouncementGroup(RumbiContext context, RumbiConfig config)
+            public AnnouncementGroup(RumbiContext context, AppConfig config)
             {
                 _dbContext = context;
                 _config = config;

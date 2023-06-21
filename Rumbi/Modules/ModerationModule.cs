@@ -84,9 +84,9 @@ namespace Rumbi.Modules
         [Group("streaming", "Group for the streaming role.")]
         public class StreamingRoleGroup : InteractionModuleBase<SocketInteractionContext>
         {
-            private readonly RumbiConfig _config;
+            private readonly AppConfig _config;
 
-            public StreamingRoleGroup(RumbiConfig config)
+            public StreamingRoleGroup(AppConfig config)
             {
                 _config = config;
             }

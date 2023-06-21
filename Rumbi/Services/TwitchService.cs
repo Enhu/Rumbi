@@ -6,9 +6,9 @@ namespace Rumbi.Services
 {
     public class TwitchService
     {
-        private readonly RumbiConfig _config;
+        private readonly AppConfig _config;
 
-        public TwitchService(RumbiConfig config)
+        public TwitchService(AppConfig config)
         {
             _config = config;
         }

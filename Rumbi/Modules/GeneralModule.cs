@@ -12,9 +12,9 @@ namespace Rumbi.Modules
     public class GeneralModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly RumbiContext _dbContext;
-        private readonly RumbiConfig _config;
+        private readonly AppConfig _config;
 
-        public GeneralModule(RumbiContext context, RumbiConfig config)
+        public GeneralModule(RumbiContext context, AppConfig config)
         {
             _dbContext = context;
             _config = config;

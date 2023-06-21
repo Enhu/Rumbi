@@ -5,7 +5,11 @@ using Serilog;
 
 namespace Rumbi.Modules
 {
-    [DefaultMemberPermissions(Discord.GuildPermission.ManageGuild & Discord.GuildPermission.KickMembers & Discord.GuildPermission.BanMembers)]
+    [DefaultMemberPermissions(
+        Discord.GuildPermission.ManageGuild
+            & Discord.GuildPermission.KickMembers
+            & Discord.GuildPermission.BanMembers
+    )]
     public class MemeModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly RumbiContext _dbContext;
@@ -16,7 +20,10 @@ namespace Rumbi.Modules
         }
 
         [SlashCommand("add-meme", "Add a new meme.")]
-        public async Task AddMeme([Summary(description: "The trigger for the meme.")] string trigger, [Summary(description: "The content of the meme.")] string content)
+        public async Task AddMeme(
+            [Summary(description: "The trigger for the meme.")] string trigger,
+            [Summary(description: "The content of the meme.")] string content
+        )
         {
             try
             {
@@ -24,15 +31,14 @@ namespace Rumbi.Modules
 
                 if (memeExists)
                 {
-                    await RespondAsync("The meme already exists, modify it or use another trigger word.", ephemeral: true);
+                    await RespondAsync(
+                        "The meme already exists, modify it or use another trigger word.",
+                        ephemeral: true
+                    );
                     return;
                 }
 
-                var meme = new Meme
-                {
-                    Content = content,
-                    Trigger = trigger,
-                };
+                var meme = new Meme { Content = content, Trigger = trigger, };
 
                 _dbContext.Add(meme);
                 _dbContext.SaveChanges();
@@ -46,7 +52,9 @@ namespace Rumbi.Modules
         }
 
         [SlashCommand("remove-meme", "Remove a meme.")]
-        public async Task AddMeme([Summary(description: "The trigger for the meme.")] string trigger)
+        public async Task AddMeme(
+            [Summary(description: "The trigger for the meme.")] string trigger
+        )
         {
             try
             {
@@ -67,11 +75,13 @@ namespace Rumbi.Modules
             {
                 Log.Error(e, e.Message, e.InnerException);
             }
-
         }
 
         [SlashCommand("modify-meme", "Modify a meme.")]
-        public async Task ModifyMeme([Summary(description: "The trigger for the meme.")] string trigger, [Summary(description: "The content of the meme.")] string content)
+        public async Task ModifyMeme(
+            [Summary(description: "The trigger for the meme.")] string trigger,
+            [Summary(description: "The content of the meme.")] string content
+        )
         {
             try
             {
@@ -94,8 +104,6 @@ namespace Rumbi.Modules
             {
                 Log.Error(e, e.Message, e.InnerException);
             }
-
         }
-
     }
 }
