@@ -21,7 +21,7 @@ namespace Rumbi.Services
                 "https://id.twitch.tv/oauth2/token"
             );
             request.Content = new StringContent(
-                $"client_id={_config.TwitchSecret}&client_secret={_config.TwitchSecret}&grant_type=client_credentials"
+                $"client_id={_config.TwitchClientId}&client_secret={_config.TwitchSecret}&grant_type=client_credentials"
             );
             request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse(
                 "application/x-www-form-urlencoded"
