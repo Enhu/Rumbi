@@ -68,7 +68,7 @@ namespace Rumbi.Modules
 
         private async Task AssingRole(Discord.Color dColor)
         {
-            var dbUser = _dbContext.GuildUsers.FirstOrDefault(x => x.Id == Context.User.Id);
+            var dbUser = _dbContext.Users.FirstOrDefault(x => x.Id == Context.User.Id);
 
             if (dbUser == null)
             {
@@ -95,7 +95,7 @@ namespace Rumbi.Modules
                     Username = Context.User.Username,
                 };
 
-                _dbContext.GuildUsers.Add(dbUser);
+                _dbContext.Users.Add(dbUser);
                 _dbContext.SaveChanges();
             }
             else

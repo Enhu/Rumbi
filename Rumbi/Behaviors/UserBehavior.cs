@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Rumbi.Data.Config;
-using Rumbi.Data.Models;
 using Rumbi.Services;
 using Serilog;
 

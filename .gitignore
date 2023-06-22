@@ -356,3 +356,5 @@ appsettings.*.json
 #Docker files
 Dockerfile.production
 docker-compose.production.yml
+
+*.sql

@@ -22,7 +22,7 @@ services:
       - botnetwork
 
   postgres:
-    container_name: postgres_container
+    container_name: rumbi-db
     image: postgres
     env_file:
       - /srv/dockerdata/secrets/rumbi/.env
@@ -39,7 +39,7 @@ services:
     restart: unless-stopped
 
   pgadmin:
-    container_name: pgadmin_container
+    container_name: rumbi-pgadmin
     image: dpage/pgadmin4
     env_file:
       - /srv/dockerdata/secrets/rumbi/.env

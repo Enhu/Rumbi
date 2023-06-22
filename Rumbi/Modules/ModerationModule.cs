@@ -49,10 +49,10 @@ namespace Rumbi.Modules
 
                     if (colorRole == null)
                         continue;
-                    if (_dbContext.GuildUsers.Any(x => x.Id == user.Id))
+                    if (_dbContext.Users.Any(x => x.Id == user.Id))
                         continue;
 
-                    _dbContext.GuildUsers.Add(
+                    _dbContext.Users.Add(
                         new User
                         {
                             Id = user.Id,
