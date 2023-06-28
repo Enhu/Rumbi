@@ -8,7 +8,7 @@ using Serilog;
 
 namespace Rumbi.Modules
 {
-    [DefaultMemberPermissions(GuildPermission.KickMembers | GuildPermission.BanMembers)]
+    [DefaultMemberPermissions(GuildPermission.KickMembers)]
     public class LeaderboardModule : InteractionModuleBase<SocketInteractionContext>
     {
         [SlashCommand("poll", "Create a new leadearboard poll")]
