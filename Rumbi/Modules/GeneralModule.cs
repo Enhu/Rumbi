@@ -1,5 +1,4 @@
-﻿using Discord;
-using Discord.Interactions;
+﻿using Discord.Interactions;
 using Rumbi.Data;
 using Rumbi.Data.Config;
 using Rumbi.Data.Models;
