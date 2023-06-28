@@ -6,7 +6,7 @@ using Serilog;
 
 namespace Rumbi.Modules
 {
-    [DefaultMemberPermissions(GuildPermission.KickMembers | GuildPermission.BanMembers)]
+    [DefaultMemberPermissions(GuildPermission.KickMembers)]
     public class MemeModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly RumbiContext _dbContext;
