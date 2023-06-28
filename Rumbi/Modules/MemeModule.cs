@@ -7,8 +7,8 @@ namespace Rumbi.Modules
 {
     [DefaultMemberPermissions(
         Discord.GuildPermission.ManageGuild
-            & Discord.GuildPermission.KickMembers
-            & Discord.GuildPermission.BanMembers
+            | Discord.GuildPermission.KickMembers
+            | Discord.GuildPermission.BanMembers
     )]
     public class MemeModule : InteractionModuleBase<SocketInteractionContext>
     {

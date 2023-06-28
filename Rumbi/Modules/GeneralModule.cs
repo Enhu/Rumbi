@@ -5,7 +5,6 @@ using Rumbi.Data.Config;
 using Rumbi.Data.Models;
 using Serilog;
 using System.Drawing;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Rumbi.Modules
 {
