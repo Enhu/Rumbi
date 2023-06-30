@@ -8,9 +8,7 @@ using Serilog;
 
 namespace Rumbi.Modules
 {
-    [DefaultMemberPermissions(
-        GuildPermission.ManageGuild & GuildPermission.KickMembers & GuildPermission.BanMembers
-    )]
+    [DefaultMemberPermissions(GuildPermission.KickMembers)]
     public class LeaderboardModule : InteractionModuleBase<SocketInteractionContext>
     {
         [SlashCommand("poll", "Create a new leadearboard poll")]
@@ -25,6 +23,7 @@ namespace Rumbi.Modules
             throw new NotImplementedException();
         }
 
+        [DefaultMemberPermissions(GuildPermission.KickMembers | GuildPermission.BanMembers)]
         [Group("announcement", "Create a new leadearboard announcement.")]
         public class AnnouncementGroup : InteractionModuleBase<SocketInteractionContext>
         {

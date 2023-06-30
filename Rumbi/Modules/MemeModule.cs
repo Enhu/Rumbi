@@ -1,15 +1,12 @@
-﻿using Discord.Interactions;
+﻿using Discord;
+using Discord.Interactions;
 using Rumbi.Data;
 using Rumbi.Data.Models;
 using Serilog;
 
 namespace Rumbi.Modules
 {
-    [DefaultMemberPermissions(
-        Discord.GuildPermission.ManageGuild
-            & Discord.GuildPermission.KickMembers
-            & Discord.GuildPermission.BanMembers
-    )]
+    [DefaultMemberPermissions(GuildPermission.KickMembers)]
     public class MemeModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly RumbiContext _dbContext;

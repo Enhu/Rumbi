@@ -27,6 +27,9 @@ namespace Rumbi.Behaviors
             if (arg.Channel.Id != _config.ChannelConfig.Bot)
                 return;
 
+            if (arg.Author.IsBot)
+                return;
+
             if (!_context.Memes.Any(x => x.Trigger == arg.Content))
                 return;
 

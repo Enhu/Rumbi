@@ -4,21 +4,20 @@ using Rumbi.Data;
 using Rumbi.Data.Config;
 using Rumbi.Data.Models;
 using Serilog;
-using System;
 
 namespace Rumbi.Modules
 {
-    [DefaultMemberPermissions(GuildPermission.ManageGuild & GuildPermission.BanMembers)]
-    public class ModerationModule : InteractionModuleBase<SocketInteractionContext>
+    [RequireOwner]
+    [DefaultMemberPermissions(GuildPermission.KickMembers | GuildPermission.BanMembers)]
+    public class DevModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly RumbiContext _dbContext;
 
-        public ModerationModule(RumbiContext context)
+        public DevModule(RumbiContext context)
         {
             _dbContext = context;
         }
 
-        [RequireOwner]
         [SlashCommand(
             "save-color-roles",
             "Finds all the unsaved color roles and tries to save them on the dabatase."
@@ -81,7 +80,9 @@ namespace Rumbi.Modules
             }
         }
 
+        [RequireOwner]
         [Group("streaming", "Group for the streaming role.")]
+        [DefaultMemberPermissions(GuildPermission.KickMembers | GuildPermission.BanMembers)]
         public class StreamingRoleGroup : InteractionModuleBase<SocketInteractionContext>
         {
             private readonly AppConfig _config;
@@ -152,6 +153,7 @@ namespace Rumbi.Modules
 
         [RequireOwner]
         [Group("unused-roles", "Group for unused roles")]
+        [DefaultMemberPermissions(GuildPermission.KickMembers | GuildPermission.BanMembers)]
         public class UnusedRolesGroup : InteractionModuleBase<SocketInteractionContext>
         {
             [SlashCommand("list", "Finds and lists all the unused roles.")]
