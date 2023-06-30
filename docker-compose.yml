@@ -12,7 +12,7 @@ services:
     depends_on:
       - "postgres"
     env_file:
-      - /srv/dockerdata/secrets/Rumbi/.env
+      - ${ENV_PATH}
     environment:
       - DB_SERVER=${DB_SERVER}
       - DB_PORT=${DB_PORT}
@@ -25,7 +25,7 @@ services:
     container_name: rumbi-db
     image: postgres
     env_file:
-      - /srv/dockerdata/secrets/Rumbi/.env
+      - ${ENV_PATH}
     environment:
       - POSTGRES_USER=${DB_USERID}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -42,13 +42,12 @@ services:
     container_name: rumbi-pgadmin
     image: dpage/pgadmin4
     env_file:
-      - /srv/dockerdata/secrets/Rumbi/.env
+      - ${ENV_PATH}
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
     volumes:
       - pgadmin:/var/lib/pgadmin
-
     ports:
       - "5050:80"
     networks:
