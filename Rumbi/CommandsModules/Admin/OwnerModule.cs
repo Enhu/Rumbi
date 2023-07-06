@@ -5,15 +5,15 @@ using Rumbi.Data.Config;
 using Rumbi.Data.Models;
 using Serilog;
 
-namespace Rumbi.Modules
+namespace Rumbi.Modules.Admin
 {
     [RequireOwner]
     [DefaultMemberPermissions(GuildPermission.KickMembers | GuildPermission.BanMembers)]
-    public class DevModule : InteractionModuleBase<SocketInteractionContext>
+    public class OwnerModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly RumbiContext _dbContext;
 
-        public DevModule(RumbiContext context)
+        public OwnerModule(RumbiContext context)
         {
             _dbContext = context;
         }
@@ -34,7 +34,9 @@ namespace Rumbi.Modules
                 foreach (var user in users)
                 {
                     var colorRole = user.Roles
-                        .Where(x => x.Name == user.Username)
+                        .Where(
+                            x => x.Name.Equals(user.Username, StringComparison.OrdinalIgnoreCase)
+                        )
                         .Where(x => !x.IsManaged)
                         .Where(x => !x.IsHoisted)
                         .Where(
@@ -48,6 +50,7 @@ namespace Rumbi.Modules
 
                     if (colorRole == null)
                         continue;
+
                     if (_dbContext.Users.Any(x => x.Id == user.Id))
                         continue;
 
@@ -124,9 +127,7 @@ namespace Rumbi.Modules
                 [Summary(name: "ID", description: "The user ID.")] string ulongId
             )
             {
-                bool validId = ulong.TryParse(ulongId, out var userId);
-
-                if (!validId)
+                if (!ulong.TryParse(ulongId, out var userId))
                 {
                     await RespondAsync(text: "Invalid ID");
                     return;
@@ -145,7 +146,7 @@ namespace Rumbi.Modules
                     return;
                 }
 
-                await streamingUser?.RemoveRoleAsync(_config.RoleConfig.Streaming);
+                await streamingUser.RemoveRoleAsync(_config.RoleConfig.Streaming);
 
                 await RespondAsync(text: "Cleared streaming role");
             }
@@ -156,7 +157,7 @@ namespace Rumbi.Modules
         [DefaultMemberPermissions(GuildPermission.KickMembers | GuildPermission.BanMembers)]
         public class UnusedRolesGroup : InteractionModuleBase<SocketInteractionContext>
         {
-            [SlashCommand("list", "Finds and lists all the unused roles.")]
+            [SlashCommand("list-all", "Finds and lists all the unused roles.")]
             public async Task ListUnusedRoles()
             {
                 await DeferAsync();
@@ -174,7 +175,7 @@ namespace Rumbi.Modules
                                 || !x.Permissions.ManageGuild
                                 || !x.Permissions.Administrator
                         )
-                        .Select(x => x.Mention)
+                        .Select(x => $"{x.Mention} ID:{x.Id}")
                 );
 
                 if (!unusedRolesList.Any())
@@ -193,7 +194,7 @@ namespace Rumbi.Modules
                 await FollowupAsync(embed: embed);
             }
 
-            [SlashCommand("delete", "Finds all the unused roles and deletes them.")]
+            [SlashCommand("delete-all", "Finds all the unused roles and deletes them.")]
             public async Task DeleteUnusedRoles(
                 [Summary(
                     name: "exclude",
@@ -210,9 +211,8 @@ namespace Rumbi.Modules
                 try
                 {
                     var rolesToExclude =
-                        excludes != null
-                            ? excludes.Replace(" ", "").Split(',').Select(ulong.Parse).ToList()
-                            : new List<ulong>();
+                        excludes?.Replace(" ", string.Empty).Split(',').Select(ulong.Parse).ToList()
+                        ?? new List<ulong>();
 
                     var unusedRolesList = Context.Guild.Roles
                         .Where(x => !x.Members.Any())

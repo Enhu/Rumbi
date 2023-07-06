@@ -1,32 +1,26 @@
-﻿using Discord.Interactions;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Threading.Tasks;
+using Discord.Interactions;
 using Rumbi.Data;
 using Rumbi.Data.Config;
 using Rumbi.Data.Models;
 using Serilog;
-using System.Drawing;
 
-namespace Rumbi.Modules
+namespace Rumbi.CommandsModules.Utility
 {
-    public class GeneralModule : InteractionModuleBase<SocketInteractionContext>
+    public class UtilityModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly RumbiContext _dbContext;
         private readonly AppConfig _config;
 
-        public GeneralModule(RumbiContext context, AppConfig config)
+        public UtilityModule(RumbiContext context, AppConfig config)
         {
             _dbContext = context;
             _config = config;
         }
-
-        [SlashCommand("ping", "Pings the bot and returns its latency.")]
-        public async Task GreetUserAsync() =>
-            await RespondAsync(
-                text: $":ping_pong: It took me {Context.Client.Latency}ms to respond to you!",
-                ephemeral: true
-            );
-
-        [SlashCommand("about", "Information about this bot.")]
-        public async Task About() => await RespondAsync(text: "Nya :3", ephemeral: true);
 
         [SlashCommand("color-me", "Add yourself a server color!.")]
         public async Task ColorUser(string hex)

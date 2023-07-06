@@ -43,7 +43,7 @@ public class Program
             .AddDbContext<RumbiContext>(options => options.UseNpgsql(config.ConnectionString))
             .AddSingleton(_socketConfig)
             .AddSingleton<DiscordSocketClient>()
-            .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
+            .AddSingleton<InteractionService>()
             .AddSingleton<InteractionHandler>()
             .AddSingleton<TwitchService>()
             .AddSingleton<UserBehavior>()
@@ -58,16 +58,15 @@ public class Program
     public async Task RunAsync()
     {
         var client = _services.GetRequiredService<DiscordSocketClient>();
-        var interaction = _services.GetRequiredService<InteractionService>();
 
         await _services.GetRequiredService<InteractionHandler>().InitializeAsync();
+        var interactionService = _services.GetService<InteractionService>();
 
         _services.GetRequiredService<UserBehavior>().Initialize();
 
         _services.GetRequiredService<MemeBehavior>().Initialize();
 
         client.Log += LogAsync;
-        interaction.Log += LogAsync;
 
         Log.Information("Logging in...");
         try

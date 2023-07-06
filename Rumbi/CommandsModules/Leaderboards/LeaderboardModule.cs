@@ -6,7 +6,7 @@ using Rumbi.Data.Config;
 using Rumbi.Data.Models;
 using Serilog;
 
-namespace Rumbi.Modules
+namespace Rumbi.Modules.Leaderboards
 {
     [DefaultMemberPermissions(GuildPermission.KickMembers)]
     public class LeaderboardModule : InteractionModuleBase<SocketInteractionContext>
