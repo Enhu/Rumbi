@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Interactions;
+using Discord.WebSocket;
 using Rumbi.Data;
 using Rumbi.Data.Config;
 using Rumbi.Data.Models;
@@ -9,11 +10,11 @@ namespace Rumbi.Modules.Admin
 {
     [RequireOwner]
     [DefaultMemberPermissions(GuildPermission.KickMembers | GuildPermission.BanMembers)]
-    public class OwnerModule : InteractionModuleBase<SocketInteractionContext>
+    public class DevModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly RumbiContext _dbContext;
 
-        public OwnerModule(RumbiContext context)
+        public DevModule(RumbiContext context)
         {
             _dbContext = context;
         }
@@ -81,6 +82,13 @@ namespace Rumbi.Modules.Admin
                 Log.Error("An error ocurred trying to save roles on the database.");
                 Log.Error(e, e.Message, e.InnerException);
             }
+        }
+
+        //I can't believe I have to do this.
+        [SlashCommand("role", "Add a role to a user")]
+        public async Task GiveRole(IUser user, string roleId)
+        {
+            var e = user as SocketGuildUser;
         }
 
         [RequireOwner]

@@ -1,7 +1,5 @@
-﻿using System.Xml.Schema;
-using Discord;
+﻿using Discord;
 using Discord.Interactions;
-using Discord.WebSocket;
 using Rumbi.Data;
 using Rumbi.Data.Models;
 using Serilog;
