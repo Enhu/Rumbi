@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord.Interactions;
+using Rumbi.Attributes;
 
 namespace Rumbi.CommandsModules.Admin
 {
+    [RequireAdmin]
     public class AdminModule : InteractionModuleBase<SocketInteractionContext>
     {
         [SlashCommand("prune", "Prune the last messages.")]
@@ -14,6 +16,9 @@ namespace Rumbi.CommandsModules.Admin
             [MinValue(1)]
             [MaxValue(100)]
                 int messagesNumber
-        ) { }
+        )
+        {
+            throw new NotImplementedException();
+        }
     }
 }

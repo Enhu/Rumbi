@@ -3,7 +3,7 @@ using Discord.Interactions;
 
 namespace Rumbi.Modals
 {
-    public class StratQuestionsModal : IModal
+    public class QuestionModal : IModal
     {
         public int QuestionId { get; set; } = 0;
 

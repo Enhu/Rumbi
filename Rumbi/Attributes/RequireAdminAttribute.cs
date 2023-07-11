@@ -1,16 +1,16 @@
 ﻿using Discord.Interactions;
 using Discord.WebSocket;
 using Discord;
+using Rumbi.Data.Config;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Rumbi.Data.Config;
 
-namespace Rumbi.PreConditions
+namespace Rumbi.Attributes
 {
-    internal class RequireModRole : PreconditionAttribute
+    internal class RequireAdmin : PreconditionAttribute
     {
         public override Task<PreconditionResult> CheckRequirementsAsync(IInteractionContext context, ICommandInfo commandInfo, IServiceProvider services)
         {
@@ -18,9 +18,9 @@ namespace Rumbi.PreConditions
 
             var config = new AppConfig();
 
-            var hasPermission = user.Roles.Any(x => x.Id == config.RoleConfig.Verifier || x.Id == config.RoleConfig.SRDCMod || x.Id == config.RoleConfig.Admin);
+            var hasAdmin = user.Roles.Any(x => x.Id == config.RoleConfig.Admin);
 
-            if (hasPermission)
+            if (hasAdmin)
                 return Task.FromResult(PreconditionResult.FromSuccess());
             else
                 return Task.FromResult(PreconditionResult.FromError("You don't have permissions to do this."));
