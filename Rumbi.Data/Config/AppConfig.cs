@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using DotNetEnv;
 
 namespace Rumbi.Data.Config
 {
@@ -19,8 +19,13 @@ namespace Rumbi.Data.Config
         public AppConfig()
         {
 #if DEBUG
-            var envPath = Path.Combine("..", "Rumbi", ".env");
-            DotNetEnv.Env.Load(envPath);
+            var currentDirectory = Directory.GetCurrentDirectory();
+            var envPath = Path.Combine(currentDirectory, ".env");
+
+            //TODO: Fix this??? Uncomment this lines to use dotnet ef
+            //var envPath = Path.Combine("..", "Rumbi", ".env");
+            //DotNetEnv.Env.Load(envPath);
+            Env.Load(envPath);
 #endif
 
             string dbServer = Environment.GetEnvironmentVariable("DB_SERVER");
@@ -48,7 +53,9 @@ namespace Rumbi.Data.Config
             {
                 Runner = ulong.Parse(Environment.GetEnvironmentVariable("RUNNER_ROLE")),
                 Streaming = ulong.Parse(Environment.GetEnvironmentVariable("STREAMING_ROLE")),
-                Verifier = ulong.Parse(Environment.GetEnvironmentVariable("VERIFIER_ROLE"))
+                Verifier = ulong.Parse(Environment.GetEnvironmentVariable("VERIFIER_ROLE")),
+                SRDCMod = ulong.Parse(Environment.GetEnvironmentVariable("SRDCMOD_ROLE")),
+                Admin = ulong.Parse(Environment.GetEnvironmentVariable("ADMIN_ROLE"))
             };
 
             ChannelConfig = new()
@@ -67,6 +74,8 @@ namespace Rumbi.Data.Config
         public ulong Streaming { get; set; } = 0;
         public ulong Runner { get; set; } = 0;
         public ulong Verifier { get; set; } = 0;
+        public ulong SRDCMod { get; set; } = 0;
+        public ulong Admin { get; set; } = 0;
     }
 
     public class ChannelConfig

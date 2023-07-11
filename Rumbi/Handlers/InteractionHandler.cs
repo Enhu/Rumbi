@@ -72,8 +72,9 @@ namespace Rumbi.Services
                 switch (result.Error)
                 {
                     case InteractionCommandError.UnmetPrecondition:
-                        //implement in the future
+                        await context.Interaction.RespondAsync(result.ErrorReason, ephemeral: true);
                         break;
+
                     default:
                         break;
                 }

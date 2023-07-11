@@ -23,14 +23,14 @@ namespace Rumbi.Data
                 .HasForeignKey<AnnouncementAttachment>(y => y.AnnouncementId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Strat>().HasAlternateKey(p => p.Identifier);
+            modelBuilder.Entity<FAQ>().HasIndex(p => p.Identifier).IsUnique();
         }
 
         public DbSet<User> Users { get; set; } = null!;
         public DbSet<Channel> Channels { get; set; } = null!;
         public DbSet<Role> Roles { get; set; } = null!;
         public DbSet<Meme> Memes { get; set; } = null!;
-        public DbSet<Strat> Strats { get; set; } = null!;
+        public DbSet<FAQ> FAQs { get; set; } = null!;
         public DbSet<Announcement> Announcements { get; set; } = null!;
         public DbSet<AnnouncementAttachment> AnnouncementAttachments { get; set; } = null!;
         public DbSet<TemporalFile> TemporalFiles { get; set; } = null!;

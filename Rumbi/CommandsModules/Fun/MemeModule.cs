@@ -2,6 +2,7 @@
 using Discord.Interactions;
 using Rumbi.Data;
 using Rumbi.Data.Models;
+using Rumbi.PreConditions;
 using Serilog;
 
 namespace Rumbi.CommandsModules.Fun
@@ -19,7 +20,7 @@ namespace Rumbi.CommandsModules.Fun
                 _dbContext = context;
             }
 
-            [DefaultMemberPermissions(GuildPermission.KickMembers)]
+            [RequireModRole]
             [SlashCommand("add", "Add a new meme.")]
             public async Task AddMeme(
                 [Summary(description: "The trigger for the meme.")] string trigger,
@@ -52,7 +53,7 @@ namespace Rumbi.CommandsModules.Fun
                 }
             }
 
-            [DefaultMemberPermissions(GuildPermission.KickMembers)]
+            [RequireModRole]
             [SlashCommand("remove", "Remove a meme.")]
             public async Task AddMeme(
                 [Summary(description: "The trigger for the meme.")] string trigger
@@ -79,7 +80,7 @@ namespace Rumbi.CommandsModules.Fun
                 }
             }
 
-            [DefaultMemberPermissions(GuildPermission.KickMembers)]
+            [RequireModRole]
             [SlashCommand("modify", "Modify a meme.")]
             public async Task ModifyMeme(
                 [Summary(description: "The trigger for the meme.")] string trigger,

@@ -4,15 +4,15 @@ using Rumbi.Data.Config;
 using Rumbi.Services;
 using Serilog;
 
-namespace Rumbi.Behaviors
+namespace Rumbi.Handlers
 {
-    public class UserBehavior
+    public class UserHandler
     {
         private readonly DiscordSocketClient _client;
         private readonly TwitchService _twitchService;
         private readonly AppConfig _config;
 
-        public UserBehavior(
+        public UserHandler(
             DiscordSocketClient client,
             TwitchService twitchService,
             AppConfig config
@@ -37,8 +37,7 @@ namespace Rumbi.Behaviors
             ulong logChannelId = _config.ChannelConfig.Logs;
             var rumbiVersion = _config.Version;
 
-            embed
-                .WithAuthor($"{user.Username}#{user.Discriminator}", user.GetAvatarUrl())
+            embed.WithAuthor($"{user.Username}#{user.Discriminator}", user.GetAvatarUrl())
                 .WithColor(0, 135, 245)
                 .WithFooter($"ID: {user.Id} | Rumbi {rumbiVersion}", user.GetAvatarUrl())
                 .WithTimestamp(DateTime.Now)
@@ -56,8 +55,7 @@ namespace Rumbi.Behaviors
             ulong logChannelId = _config.ChannelConfig.Logs;
             var rumbiVersion = _config.Version;
 
-            embed
-                .WithAuthor($"{user.Username}#{user.Discriminator}", user.GetAvatarUrl())
+            embed.WithAuthor($"{user.Username}#{user.Discriminator}", user.GetAvatarUrl())
                 .WithColor(0, 135, 245)
                 .WithFooter($"ID: {user.Id} | Rumbi {rumbiVersion}", user.GetAvatarUrl())
                 .WithTimestamp(DateTime.Now)

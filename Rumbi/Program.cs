@@ -3,9 +3,9 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Rumbi.Behaviors;
 using Rumbi.Data;
 using Rumbi.Data.Config;
+using Rumbi.Handlers;
 using Rumbi.Services;
 using Serilog;
 using Serilog.Events;
@@ -46,8 +46,8 @@ public class Program
             .AddSingleton<InteractionService>()
             .AddSingleton<InteractionHandler>()
             .AddSingleton<TwitchService>()
-            .AddSingleton<UserBehavior>()
-            .AddSingleton<MemeBehavior>()
+            .AddSingleton<UserHandler>()
+            .AddSingleton<MemeHandler>()
             .BuildServiceProvider();
 
         Log.Information("All services loaded.");
@@ -62,9 +62,9 @@ public class Program
         await _services.GetRequiredService<InteractionHandler>().InitializeAsync();
         var interactionService = _services.GetService<InteractionService>();
 
-        _services.GetRequiredService<UserBehavior>().Initialize();
+        _services.GetRequiredService<UserHandler>().Initialize();
 
-        _services.GetRequiredService<MemeBehavior>().Initialize();
+        _services.GetRequiredService<MemeHandler>().Initialize();
 
         client.Log += LogAsync;
 

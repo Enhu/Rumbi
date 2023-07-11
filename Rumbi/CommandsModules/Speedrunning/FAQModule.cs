@@ -1,21 +1,21 @@
-using System.Security.AccessControl;
-using System.Text;
-using System.ComponentModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Discord;
 using Discord.Interactions;
 using Rumbi.Data;
-using Rumbi.Modals;
 using Rumbi.Data.Models;
 using Rumbi.Exceptions;
-using Serilog;
+using Rumbi.Modals;
+using Rumbi.PreConditions;
 using Rumbi.Utils;
+using Serilog;
 
 namespace Rumbi.CommandsModules.Speedrunning
 {
+    internal enum QuestionType
+    {
+        Strat,
+        General
+    }
+
     [Group("faq", "Frequently asked questions about hat speedrunning")]
     public class FAQModule : InteractionModuleBase<SocketInteractionContext>
     {
@@ -26,53 +26,74 @@ namespace Rumbi.CommandsModules.Speedrunning
             _dbContext = dbContext;
         }
 
-        [SlashCommand("strats", "Learn about strats!")]
-        public async Task ShowStratsFAQ()
+        [SlashCommand("general", "General questions about the game!")]
+        public async Task ShowGeneralFAQ()
         {
-            if (_dbContext.Strats.Count() == 0)
+            var type = QuestionType.General.ToString();
+
+            if (!_dbContext.FAQs.Any(x => x.Type.Equals(type)))
             {
-                await RespondAsync(BotMessage.QuestionsEmpty, ephemeral: true);
+                await RespondAsync(BotMessage.NoQuestions, ephemeral: true);
                 return;
             }
 
             await DeferAsync(ephemeral: true);
 
             await FollowupAsync(
-                text: BotMessage.QuestionWelcomeMessage,
-                components: GetStratsMenuOptions(),
+                text: BotMessage.StratsWelcomeMessage,
+                components: GetStratsMenuOptions(type),
                 ephemeral: true
             );
         }
 
-        [ComponentInteraction("faqstrats", ignoreGroupNames: true)]
-        public async Task StratsFAQSelection(string[] selectedQuestion)
+        [SlashCommand("strats", "Learn about strats!")]
+        public async Task ShowStratsFAQ()
+        {
+            var type = QuestionType.Strat.ToString();
+
+            if (!_dbContext.FAQs.Any(x => x.Type.Equals(type)))
+            {
+                await RespondAsync(BotMessage.NoQuestions, ephemeral: true);
+                return;
+            }
+
+            await DeferAsync(ephemeral: true);
+
+            await FollowupAsync(
+                text: BotMessage.StratsWelcomeMessage,
+                components: GetStratsMenuOptions(type),
+                ephemeral: true
+            );
+        }
+
+        [ComponentInteraction("faqstrats_*", ignoreGroupNames: true)]
+        public async Task StratsFAQSelection(string type, string[] selectedQuestion)
         {
             var interactionContext = Context.Interaction as IComponentInteraction;
 
-            var content = _dbContext.Strats
-                .Where(x => x.Identifier == selectedQuestion[0])
+            var content = _dbContext.FAQs
+                .Where(x => x.Type == type && x.Identifier == selectedQuestion[0])
                 .Select(y => y.Content)
                 .SingleOrDefault();
 
-            await RespondAsync(content);
+            await RespondAsync(content, ephemeral: true);
         }
 
-        private MessageComponent GetStratsMenuOptions()
+        private MessageComponent GetStratsMenuOptions(string type)
         {
-            var selectOptions = _dbContext.Strats
-                .Select(
-                    strat =>
-                        new SelectMenuOptionBuilder
-                        {
-                            Value = strat.Identifier,
-                            Description = "-",
-                            Label = strat.Label
-                        }
-                )
+            var selectOptions = _dbContext.FAQs
+                .Where(x => x.Type.Equals(type))
+                .Select(strat =>
+                    new SelectMenuOptionBuilder
+                    {
+                        Value = strat.Identifier,
+                        Description = string.IsNullOrEmpty(strat.Description) ? "-" : strat.Description,
+                        Label = strat.Label
+                    })
                 .ToList();
 
             var selectMenu = new SelectMenuBuilder()
-                .WithCustomId("faqstrats")
+                .WithCustomId($"faqstrats_{type}")
                 .WithPlaceholder(BotMessage.QuestionSelect)
                 .WithOptions(selectOptions);
 
@@ -81,140 +102,295 @@ namespace Rumbi.CommandsModules.Speedrunning
             return messageComponent;
         }
 
-        [Group("strats-management", "Manage strats questions")]
-        public class StratsManagementModule : InteractionModuleBase<SocketInteractionContext>
+        [RequireModRole]
+        [Group("manage", "Manage questions")]
+        public class StratsQuestionsModule : InteractionModuleBase<SocketInteractionContext>
         {
             private readonly RumbiContext _dbContext;
 
-            public StratsManagementModule(RumbiContext dbContext)
+            public StratsQuestionsModule(RumbiContext dbContext)
             {
                 _dbContext = dbContext;
             }
 
-            [SlashCommand("add", "Add a new strat question/answer")]
-            public async Task AddStratQuestion()
+            [SlashCommand("strats", "Manage strat questions")]
+            public async Task ManageStratsQuestions()
+            {
+                await DeferAsync(ephemeral: true);
+
+                var type = QuestionType.Strat.ToString();
+
+                var itemsExist = _dbContext.FAQs.Any(x => x.Type.Equals(type));
+
+                var message = itemsExist ? BotMessage.ManagerMessage : BotMessage.ManagerEmpty;
+                var components = itemsExist ? GetManagerComponents(type) : GetManagerComponentsNoItems(type);
+
+                await FollowupAsync(text: message,
+                    components: components, ephemeral: true);
+            }
+
+            [SlashCommand("general", "Manage general questions")]
+            public async Task ManageGeneralQuestions()
+            {
+                await DeferAsync(ephemeral: true);
+
+                var type = QuestionType.General.ToString();
+
+                var itemsExist = _dbContext.FAQs.Any(x => x.Type.Equals(type));
+
+                var message = itemsExist ? BotMessage.ManagerMessage : BotMessage.ManagerEmpty;
+                var components = itemsExist ? GetManagerComponents(type) : GetManagerComponentsNoItems(type);
+
+                await FollowupAsync(text: message,
+                    components: components, ephemeral: true);
+            }
+
+            [ComponentInteraction("manageFAQ_*", ignoreGroupNames: true)]
+            public async Task ManageFAQs(string type, string[] selectedQuestion)
+            {
+                await DeferAsync();
+
+                var identifier = selectedQuestion[0];
+
+                var content = _dbContext.FAQs
+                    .Where(x => x.Identifier == identifier)
+                    .Select(y => y.Content)
+                    .SingleOrDefault();
+
+                await ModifyOriginalResponseAsync(x =>
+                {
+                    x.Content = BotMessage.ManagerMessage + BotMessage.ManagerQuestionSelected(identifier);
+                    x.Components = GetManagerComponents(type: type, disabled: false, identifier = identifier);
+                });
+            }
+
+            [ComponentInteraction("btnRefresh_*", ignoreGroupNames: true)]
+            public async Task ButtonRefresh(string type)
+            {
+                await DeferAsync();
+
+                var itemsExist = _dbContext.FAQs.Any(x => x.Type.Equals(type));
+
+                var message = itemsExist ? BotMessage.ManagerMessage : BotMessage.ManagerEmpty;
+                var components = itemsExist ? GetManagerComponents(type) : GetManagerComponentsNoItems(type);
+
+                await ModifyOriginalResponseAsync(x =>
+                {
+                    x.Content = message;
+                    x.Components = components;
+                });
+            }
+
+            [ComponentInteraction("btnAdd_*", ignoreGroupNames: true)]
+            public async Task ButtonAdd(string type)
             {
                 var guid = Guid.NewGuid();
                 await Context.Interaction.RespondWithModalAsync<StratQuestionsModal>(
-                    $"addQuestionModal_{guid}",
+                    $"addFAQMdl_{guid},{type}",
                     null,
                     x => x.WithTitle(BotMessage.QuestionModalAdd)
                 );
             }
 
-            [SlashCommand("edit", "Edit a new strat question/answer")]
-            public async Task EditStratQuestion(
-                [Summary("identifier", "The unique identifier such as 'sdj'")] string identifier
-            )
+            [ComponentInteraction("btnEdit_*,*", ignoreGroupNames: true)]
+            public async Task ButtonEdit(string identifier, string type)
             {
-                await DeferAsync();
-
-                var strat = _dbContext.Strats
+                var strat = _dbContext.FAQs
                     .Where(x => x.Identifier == identifier)
                     .FirstOrDefault();
 
                 if (strat == null)
-                    await FollowupAsync(BotMessage.QuestionNotFound(identifier));
+                {
+                    await FollowupAsync(BotMessage.QuestionNotFound(identifier), ephemeral: true);
+                    return;
+                }
 
                 var guid = Guid.NewGuid();
-                await Context.Interaction.RespondWithModalAsync<StratQuestionsModal>(
-                    $"editQuestionModal_{guid}",
+                await Context.Interaction.RespondWithModalAsync(
+                    $"editFAQMdl_{guid},{strat.Id},{type}",
                     new StratQuestionsModal
                     {
                         Content = strat.Content,
                         Identifier = strat.Identifier,
                         Label = strat.Label,
-                        Description = strat.Description
+                        Description = strat.Description,
                     },
                     null,
                     x => x.WithTitle(BotMessage.QuestionModalEdit)
                 );
             }
 
-            [SlashCommand("remove", "Remove a new strat question/answer")]
-            public async Task RemoveStratQuestion(
-                [Summary("identifier", "The unique identifier such as 'sdj'")] string identifier
-            )
+            [ComponentInteraction("btnRemove_*,*", ignoreGroupNames: true)]
+            public async Task ButtonRemove(string identifier, string type)
             {
                 await DeferAsync();
 
-                var strat = _dbContext.Strats
-                    .Where(x => x.Identifier == identifier)
+                var strat = _dbContext.FAQs
+                    .Where(x => x.Identifier == identifier && x.Type.Equals(type))
                     .FirstOrDefault();
 
                 if (strat == null)
                 {
-                    await FollowupAsync(BotMessage.QuestionNotFound(identifier));
+                    await FollowupAsync(BotMessage.QuestionNotFound(identifier), ephemeral: true);
+                    return;
                 }
 
-                _dbContext.Strats.Remove(strat);
+                _dbContext.FAQs.Remove(strat);
                 _dbContext.SaveChanges();
 
-                await FollowupAsync(BotMessage.QuestionDeleted);
+                await FollowupAsync(BotMessage.QuestionDeleted, ephemeral: true);
             }
 
-            [ModalInteraction("addQuestionModal_*", ignoreGroupNames: true)]
-            public async Task HandleAddQuestion(string guid, StratQuestionsModal modal)
+            private MessageComponent GetManagerComponentsNoItems(string type)
             {
-                try
-                {
-                    if (_dbContext.Strats.Any(x => x.Identifier == modal.Identifier))
-                        throw new BotException(BotMessage.QuestionAlreadyExists(modal.Identifier));
+                var addButton = new ButtonBuilder()
+                    .WithCustomId($"btnAdd_{type}")
+                    .WithLabel("Add")
+                    .WithStyle(ButtonStyle.Primary);
 
-                    var strat = new Strat
+                var refreshButton = new ButtonBuilder()
+                    .WithCustomId($"btnRefresh_{type}")
+                    .WithLabel("Refresh")
+                    .WithStyle(ButtonStyle.Secondary);
+
+                var crudButtons = new ActionRowBuilder()
+                    .WithButton(addButton)
+                    .WithButton(refreshButton);
+
+                var messageComponent = new ComponentBuilder()
+                    .WithRows(new List<ActionRowBuilder>
                     {
-                        Label = modal.Label,
-                        Identifier = modal.Identifier,
-                        Description = modal.Description,
-                        Content = modal.Content
-                    };
+                        crudButtons
+                    })
+                    .Build();
 
-                    _dbContext.Strats.Add(strat);
-                    _dbContext.SaveChanges();
-                    await RespondAsync(BotMessage.QuestionAdded, ephemeral: true);
-                }
-                catch (BotException e)
-                {
-                    await RespondAsync(e.Message);
-                }
-                catch (Exception e)
-                {
-                    await RespondAsync(BotMessage.InternalError, ephemeral: true);
-                    Log.Error(e, e.Message);
-                }
+                return messageComponent;
             }
 
-            [ModalInteraction("editQuestionModal_*", ignoreGroupNames: true)]
-            public async Task HandleEditQuestion(string guid, StratQuestionsModal modal)
+            private MessageComponent GetManagerComponents(string type, bool disabled = true, string? identifier = null)
             {
-                try
+                var selectOptions = _dbContext.FAQs
+                    .Where(x => x.Type.Equals(type))
+                    .Select(strat =>
+                        new SelectMenuOptionBuilder
+                        {
+                            Value = strat.Identifier,
+                            Description = "-",
+                            Label = strat.Label
+                        })
+                    .ToList();
+
+                var selectMenu = new SelectMenuBuilder()
+                    .WithCustomId($"manageFAQ_{type}")
+                    .WithPlaceholder(BotMessage.QuestionSelect)
+                    .WithOptions(selectOptions);
+
+                var addButton = new ButtonBuilder()
+                    .WithCustomId($"btnAdd_{type}")
+                    .WithLabel("Add")
+                    .WithStyle(ButtonStyle.Primary);
+
+                var editButton = new ButtonBuilder()
+                    .WithCustomId($"btnEdit_{identifier},{type}")
+                    .WithLabel("Edit")
+                    .WithDisabled(disabled)
+                    .WithStyle(ButtonStyle.Success);
+
+                var removeButton = new ButtonBuilder()
+                    .WithCustomId($"btnRemove_{identifier},{type}")
+                    .WithLabel("Remove")
+                    .WithDisabled(disabled)
+                    .WithStyle(ButtonStyle.Danger);
+
+                var refreshButton = new ButtonBuilder()
+                    .WithCustomId($"btnRefresh_{type}")
+                    .WithLabel("Refresh")
+                    .WithStyle(ButtonStyle.Secondary);
+
+                var selectRow = new ActionRowBuilder()
+                    .WithSelectMenu(selectMenu);
+
+                var crudButtons = new ActionRowBuilder()
+                    .WithButton(addButton)
+                    .WithButton(editButton)
+                    .WithButton(removeButton)
+                    .WithButton(refreshButton);
+
+                var messageComponent = new ComponentBuilder()
+                    .WithRows(new List<ActionRowBuilder>
+                    {
+                        selectRow,
+                        crudButtons
+                    })
+                    .Build();
+
+                return messageComponent;
+            }
+        }
+
+        [ModalInteraction("addFAQMdl_*,*", ignoreGroupNames: true)]
+        public async Task HandleAddQuestion(string guid, string questionType, StratQuestionsModal modal)
+        {
+            try
+            {
+                if (_dbContext.FAQs.Any(x => x.Identifier == modal.Identifier && x.Type == questionType))
+                    throw new BotException(BotMessage.QuestionAlreadyExists(modal.Identifier));
+
+                var strat = new FAQ
                 {
-                    if (_dbContext.Strats.Any(x => x.Identifier == modal.Identifier))
-                        throw new BotException(BotMessage.QuestionAlreadyExists(modal.Identifier));
+                    Label = modal.Label,
+                    Identifier = modal.Identifier,
+                    Description = modal.Description,
+                    Content = modal.Content,
+                    Type = questionType
+                };
 
-                    var strat = _dbContext.Strats
-                        .Where(x => x.Id == modal.QuestionId)
-                        .FirstOrDefault();
+                _dbContext.FAQs.Add(strat);
+                _dbContext.SaveChanges();
 
-                    strat.Content = modal.Content;
-                    strat.Description = modal.Description;
-                    strat.Identifier = modal.Identifier;
-                    strat.Label = modal.Label;
+                await RespondAsync(BotMessage.QuestionAdded, ephemeral: true);
+            }
+            catch (BotException e)
+            {
+                await RespondAsync(e.Message);
+            }
+            catch (Exception e)
+            {
+                await RespondAsync(BotMessage.InternalError, ephemeral: true);
+                Log.Error(e, e.Message);
+            }
+        }
 
-                    _dbContext.Strats.Update(strat);
-                    _dbContext.SaveChanges();
+        [ModalInteraction("editFAQMdl_*,*,*", ignoreGroupNames: true)]
+        public async Task HandleEditQuestion(string guid, int questionId, string questionType, StratQuestionsModal modal)
+        {
+            try
+            {
+                if (_dbContext.FAQs.Any(x => x.Identifier == modal.Identifier && x.Type == questionType && x.Id != questionId))
+                    throw new BotException(BotMessage.QuestionAlreadyExists(modal.Identifier));
 
-                    await RespondAsync(BotMessage.QuestionEdited, ephemeral: true);
-                }
-                catch (BotException e)
-                {
-                    await RespondAsync(e.Message);
-                }
-                catch (Exception e)
-                {
-                    await RespondAsync(BotMessage.InternalError, ephemeral: true);
-                    Log.Error(e, e.Message);
-                }
+                var strat = _dbContext.FAQs
+                    .Where(x => x.Id == questionId)
+                    .FirstOrDefault();
+
+                strat.Content = modal.Content;
+                strat.Description = modal.Description;
+                strat.Identifier = modal.Identifier;
+                strat.Label = modal.Label;
+
+                _dbContext.FAQs.Update(strat);
+                _dbContext.SaveChanges();
+
+                await RespondAsync(BotMessage.QuestionEdited, ephemeral: true);
+            }
+            catch (BotException e)
+            {
+                await RespondAsync(e.Message);
+            }
+            catch (Exception e)
+            {
+                await RespondAsync(BotMessage.InternalError, ephemeral: true);
+                Log.Error(e, e.Message);
             }
         }
     }
