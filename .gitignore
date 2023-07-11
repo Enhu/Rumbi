@@ -358,3 +358,4 @@ Dockerfile.production
 docker-compose.production.yml
 
 *.sql
+.env

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Rumbi.Data;
@@ -11,9 +12,11 @@ using Rumbi.Data;
 namespace Rumbi.Data.Migrations
 {
     [DbContext(typeof(RumbiContext))]
-    partial class RumbiContextModelSnapshot : ModelSnapshot
+    [Migration("20230711134005_RenameFAQTableAddType")]
+    partial class RenameFAQTableAddType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -121,8 +124,7 @@ namespace Rumbi.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Identifier")
-                        .IsUnique();
+                    b.HasAlternateKey("Identifier");
 
                     b.ToTable("FAQs");
                 });

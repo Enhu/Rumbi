@@ -1,59 +1,52 @@
-﻿using Discord.Interactions;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Threading.Tasks;
+using Discord;
+using Discord.Interactions;
+using Discord.WebSocket;
 using Rumbi.Data;
 using Rumbi.Data.Config;
 using Rumbi.Data.Models;
 using Serilog;
-using System.Drawing;
 
-namespace Rumbi.Modules
+namespace Rumbi.CommandsModules.Utility
 {
-    public class GeneralModule : InteractionModuleBase<SocketInteractionContext>
+    [Group("color", "Color utilities")]
+    public class ColorModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly RumbiContext _dbContext;
         private readonly AppConfig _config;
 
-        public GeneralModule(RumbiContext context, AppConfig config)
+        public ColorModule(RumbiContext context, AppConfig config)
         {
             _dbContext = context;
             _config = config;
         }
 
-        [SlashCommand("ping", "Pings the bot and returns its latency.")]
-        public async Task GreetUserAsync() =>
-            await RespondAsync(
-                text: $":ping_pong: It took me {Context.Client.Latency}ms to respond to you!",
-                ephemeral: true
-            );
-
-        [SlashCommand("about", "Information about this bot.")]
-        public async Task About() => await RespondAsync(text: "Nya :3", ephemeral: true);
-
-        [SlashCommand("color-me", "Add yourself a server color!.")]
-        public async Task ColorUser(string hex)
+        [SlashCommand("me", "Give yourself a color")]
+        public async Task ColorUser([Summary("Color", "Example: #ffffff or ffffff")] string hex)
         {
             await DeferAsync();
 
             try
             {
                 if (!hex.StartsWith("#"))
-                    hex = string.Format("#{0}", hex);
+                    hex = $"#{hex}";
 
-                var color = ColorTranslator.FromHtml(hex);
+                var hexColor = ColorTranslator.FromHtml(hex);
 
-                Discord.Color dColor = new(color.R, color.G, color.B);
+                Discord.Color roleColor = new(hexColor.R, hexColor.G, hexColor.B);
 
                 try
                 {
-                    await AssingRole(dColor);
-
-                    await FollowupAsync(text: "Your pretty color was applied!", ephemeral: true);
+                    await AssingRole(roleColor);
+                    await FollowupAsync(text: "Color applied!", ephemeral: true);
                 }
                 catch (Exception e)
                 {
-                    await FollowupAsync(
-                        text: $"An error ocurred. Reach an admin for more information.",
-                        ephemeral: true
-                    );
+                    await FollowupAsync(text: e.Message, ephemeral: true);
                     Log.Error(e.InnerException, e.Message, e.InnerException);
                 }
             }
@@ -62,6 +55,27 @@ namespace Rumbi.Modules
                 await RespondAsync(text: "Invalid color code.", ephemeral: true);
                 Log.Warning($"String used: {hex}");
             }
+        }
+
+        [SlashCommand("remove", "Remove your color role")]
+        public async Task RemoveColor()
+        {
+            var socketUser = Context.User as SocketGuildUser;
+
+            var roleId = _dbContext.Users
+                .Where(x => x.Id == socketUser.Id)
+                .Select(y => y.ColorRoleId)
+                .SingleOrDefault();
+
+            if (roleId == 0)
+            {
+                await RespondAsync(text: "Color not found", ephemeral: true);
+                return;
+            }
+
+            await socketUser.RemoveRoleAsync(roleId);
+
+            await RespondAsync(text: "Color removed", ephemeral: true);
         }
 
         private async Task AssingRole(Discord.Color dColor)

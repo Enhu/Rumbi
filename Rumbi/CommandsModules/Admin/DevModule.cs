@@ -1,14 +1,14 @@
 ﻿using Discord;
 using Discord.Interactions;
+using Discord.WebSocket;
 using Rumbi.Data;
 using Rumbi.Data.Config;
 using Rumbi.Data.Models;
 using Serilog;
 
-namespace Rumbi.Modules
+namespace Rumbi.Modules.Admin
 {
     [RequireOwner]
-    [DefaultMemberPermissions(GuildPermission.KickMembers | GuildPermission.BanMembers)]
     public class DevModule : InteractionModuleBase<SocketInteractionContext>
     {
         private readonly RumbiContext _dbContext;
@@ -24,7 +24,7 @@ namespace Rumbi.Modules
         )]
         public async Task SaveColorRoles()
         {
-            await DeferAsync();
+            await DeferAsync(ephemeral: true);
 
             var users = Context.Guild.Users.Where(x => x.Roles.Count > 1);
             var savedCount = 0;
@@ -34,7 +34,9 @@ namespace Rumbi.Modules
                 foreach (var user in users)
                 {
                     var colorRole = user.Roles
-                        .Where(x => x.Name == user.Username)
+                        .Where(
+                            x => x.Name.Equals(user.Username, StringComparison.OrdinalIgnoreCase)
+                        )
                         .Where(x => !x.IsManaged)
                         .Where(x => !x.IsHoisted)
                         .Where(
@@ -48,6 +50,7 @@ namespace Rumbi.Modules
 
                     if (colorRole == null)
                         continue;
+
                     if (_dbContext.Users.Any(x => x.Id == user.Id))
                         continue;
 
@@ -67,14 +70,15 @@ namespace Rumbi.Modules
 
                 if (savedCount == 0)
                 {
-                    await FollowupAsync(text: "No role colors to save.");
+                    await FollowupAsync(text: "No role colors to save.", ephemeral: true);
                     return;
                 }
 
-                await FollowupAsync(text: $"Successfully saved {savedCount} color roles.");
+                await FollowupAsync(text: $"Successfully saved {savedCount} color roles.", ephemeral: true);
             }
             catch (Exception e)
             {
+                await FollowupAsync(text: "An error ocurred. Check the logs for more information.", ephemeral: true);
                 Log.Error("An error ocurred trying to save roles on the database.");
                 Log.Error(e, e.Message, e.InnerException);
             }
@@ -82,7 +86,6 @@ namespace Rumbi.Modules
 
         [RequireOwner]
         [Group("streaming", "Group for the streaming role.")]
-        [DefaultMemberPermissions(GuildPermission.KickMembers | GuildPermission.BanMembers)]
         public class StreamingRoleGroup : InteractionModuleBase<SocketInteractionContext>
         {
             private readonly AppConfig _config;
@@ -102,12 +105,12 @@ namespace Rumbi.Modules
 
                 if (streamingRole == null)
                 {
-                    await RespondAsync(text: "Couldn't find the streaming role");
+                    await RespondAsync(text: "Couldn't find the streaming role", ephemeral: true);
                     return;
                 }
                 if (streamingUsers.Count < 1)
                 {
-                    await RespondAsync(text: "No users using the role.");
+                    await RespondAsync(text: "No users using the role.", ephemeral: true);
                     return;
                 }
 
@@ -116,7 +119,7 @@ namespace Rumbi.Modules
                     await user.RemoveRoleAsync(streamingRole);
                 }
 
-                await RespondAsync(text: "Cleared streaming roles");
+                await RespondAsync(text: "Cleared streaming roles", ephemeral: true);
             }
 
             [SlashCommand("clear", "Give a user ID to clear the role.")]
@@ -124,11 +127,9 @@ namespace Rumbi.Modules
                 [Summary(name: "ID", description: "The user ID.")] string ulongId
             )
             {
-                bool validId = ulong.TryParse(ulongId, out var userId);
-
-                if (!validId)
+                if (!ulong.TryParse(ulongId, out var userId))
                 {
-                    await RespondAsync(text: "Invalid ID");
+                    await RespondAsync(text: "Invalid ID", ephemeral: true);
                     return;
                 }
 
@@ -145,21 +146,20 @@ namespace Rumbi.Modules
                     return;
                 }
 
-                await streamingUser?.RemoveRoleAsync(_config.RoleConfig.Streaming);
+                await streamingUser.RemoveRoleAsync(_config.RoleConfig.Streaming);
 
-                await RespondAsync(text: "Cleared streaming role");
+                await RespondAsync(text: "Cleared streaming role", ephemeral: true);
             }
         }
 
         [RequireOwner]
         [Group("unused-roles", "Group for unused roles")]
-        [DefaultMemberPermissions(GuildPermission.KickMembers | GuildPermission.BanMembers)]
         public class UnusedRolesGroup : InteractionModuleBase<SocketInteractionContext>
         {
-            [SlashCommand("list", "Finds and lists all the unused roles.")]
+            [SlashCommand("list-all", "Finds and lists all the unused roles.")]
             public async Task ListUnusedRoles()
             {
-                await DeferAsync();
+                await DeferAsync(ephemeral: true);
 
                 var unusedRolesList = string.Join(
                     ",\n",
@@ -174,12 +174,12 @@ namespace Rumbi.Modules
                                 || !x.Permissions.ManageGuild
                                 || !x.Permissions.Administrator
                         )
-                        .Select(x => x.Mention)
+                        .Select(x => $"{x.Mention} ID:{x.Id}")
                 );
 
                 if (!unusedRolesList.Any())
                 {
-                    await FollowupAsync(text: "No unused roles found.");
+                    await FollowupAsync(text: "No unused roles found.", ephemeral: true);
                     return;
                 }
 
@@ -190,10 +190,10 @@ namespace Rumbi.Modules
                     .WithCurrentTimestamp()
                     .Build();
 
-                await FollowupAsync(embed: embed);
+                await FollowupAsync(embed: embed, ephemeral: true);
             }
 
-            [SlashCommand("delete", "Finds all the unused roles and deletes them.")]
+            [SlashCommand("delete-all", "Finds all the unused roles and deletes them.")]
             public async Task DeleteUnusedRoles(
                 [Summary(
                     name: "exclude",
@@ -202,7 +202,7 @@ namespace Rumbi.Modules
                     string? excludes = null
             )
             {
-                await DeferAsync();
+                await DeferAsync(ephemeral: true);
 
                 var currentRole = string.Empty;
                 var currentRoleID = string.Empty;
@@ -210,9 +210,8 @@ namespace Rumbi.Modules
                 try
                 {
                     var rolesToExclude =
-                        excludes != null
-                            ? excludes.Replace(" ", "").Split(',').Select(ulong.Parse).ToList()
-                            : new List<ulong>();
+                        excludes?.Replace(" ", string.Empty).Split(',').Select(ulong.Parse).ToList()
+                        ?? new List<ulong>();
 
                     var unusedRolesList = Context.Guild.Roles
                         .Where(x => !x.Members.Any())
@@ -229,7 +228,7 @@ namespace Rumbi.Modules
 
                     if (!unusedRolesList.Any())
                     {
-                        await FollowupAsync(text: "No unused roles found.");
+                        await FollowupAsync(text: "No unused roles found.", ephemeral: true);
                         return;
                     }
 
@@ -239,20 +238,19 @@ namespace Rumbi.Modules
                         currentRoleID = role.Id.ToString();
                         await role.DeleteAsync();
                     }
+
+                    await FollowupAsync(text: "Successfully deleted all unused roles.", ephemeral: true);
                 }
                 catch (Exception e)
                 {
                     await FollowupAsync(
                         text: "An error ocurred. Check the logs for more information."
-                    );
+                    , ephemeral: true);
                     Log.Error(
                         $"An error ocurred trying to delete role: name:  {currentRole}, ID: {currentRoleID} "
                     );
                     Log.Error(e, e.Message, e.InnerException);
-                    return;
                 }
-
-                await FollowupAsync(text: "Successfully deleted all unused roles.");
             }
         }
     }

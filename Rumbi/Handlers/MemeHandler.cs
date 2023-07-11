@@ -2,15 +2,15 @@
 using Rumbi.Data;
 using Rumbi.Data.Config;
 
-namespace Rumbi.Behaviors
+namespace Rumbi.Handlers
 {
-    public class MemeBehavior
+    public class MemeHandler
     {
         private readonly DiscordSocketClient _client;
         private readonly RumbiContext _context;
         private readonly AppConfig _config;
 
-        public MemeBehavior(DiscordSocketClient client, RumbiContext context, AppConfig config)
+        public MemeHandler(DiscordSocketClient client, RumbiContext context, AppConfig config)
         {
             _client = client;
             _context = context;
