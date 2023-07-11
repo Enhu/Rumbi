@@ -20,7 +20,7 @@ namespace Rumbi.CommandsModules.Fun
                 _dbContext = context;
             }
 
-            [RequireModRole]
+            [RequireModerator]
             [SlashCommand("add", "Add a new meme.")]
             public async Task AddMeme(
                 [Summary(description: "The trigger for the meme.")] string trigger,
@@ -53,7 +53,7 @@ namespace Rumbi.CommandsModules.Fun
                 }
             }
 
-            [RequireModRole]
+            [RequireModerator]
             [SlashCommand("remove", "Remove a meme.")]
             public async Task AddMeme(
                 [Summary(description: "The trigger for the meme.")] string trigger
@@ -80,7 +80,7 @@ namespace Rumbi.CommandsModules.Fun
                 }
             }
 
-            [RequireModRole]
+            [RequireModerator]
             [SlashCommand("modify", "Modify a meme.")]
             public async Task ModifyMeme(
                 [Summary(description: "The trigger for the meme.")] string trigger,
