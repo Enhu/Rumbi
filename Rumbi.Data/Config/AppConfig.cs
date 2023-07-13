@@ -15,6 +15,7 @@ namespace Rumbi.Data.Config
 
         public RoleConfig RoleConfig { get; set; }
         public ChannelConfig ChannelConfig { get; set; }
+        //public SRDCConfig SRDCConfig { get; set; }
 
         public AppConfig()
         {
@@ -66,6 +67,13 @@ namespace Rumbi.Data.Config
                 Logs = ulong.Parse(Environment.GetEnvironmentVariable("LOG_CH")),
                 Runner = ulong.Parse(Environment.GetEnvironmentVariable("RUNNER_CH")),
             };
+
+            //SRDCConfig = new()
+            //{
+            //    AHiTId = Environment.GetEnvironmentVariable("SRDC_AHITID"),
+            //    AHiTCEId = Environment.GetEnvironmentVariable("SRDC_AHITCEID"),
+            //    AHiTWId = Environment.GetEnvironmentVariable("SRDC_AHITWID")
+            //};
         }
     }
 
@@ -90,4 +98,11 @@ namespace Rumbi.Data.Config
 
         public ulong Runner { get; set; } = 0;
     }
+
+    //public class SRDCConfig
+    //{
+    //    public string AHiTId { get; set; } = string.Empty;
+    //    public string AHiTCEId { get; set; } = string.Empty;
+    //    public string AHiTWId { get; set; } = string.Empty;
+    //}
 }

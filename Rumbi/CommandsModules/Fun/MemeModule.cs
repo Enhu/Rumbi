@@ -81,7 +81,7 @@ namespace Rumbi.CommandsModules.Fun
             }
 
             [RequireModerator]
-            [SlashCommand("modify", "Modify a meme.")]
+            [SlashCommand("edit", "Edit a meme.")]
             public async Task ModifyMeme(
                 [Summary(description: "The trigger for the meme.")] string trigger,
                 [Summary(description: "The content of the meme.")] string content

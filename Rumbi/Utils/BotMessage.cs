@@ -6,6 +6,9 @@ namespace Rumbi.Utils
         public static string InternalError { get; } =
             $"❌ An error ocurred, please contact enhu on discord.";
 
+        public static string AboutBot { get; } = $"Made by and maintaned by Enhu. \n\n " +
+            $"__GitHub repository:__ https://github.com/Enhu/Rumbi \n";
+
         // FAQ Module
 
         public static string NoQuestions { get; } = "⚠️ No questions found yet, please wait until an moderator adds some!";
