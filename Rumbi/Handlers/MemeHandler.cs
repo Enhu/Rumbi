@@ -1,20 +1,23 @@
 ﻿using Discord.WebSocket;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Rumbi.Data;
 using Rumbi.Data.Config;
+using Rumbi.Data.Models;
 
 namespace Rumbi.Handlers
 {
     public class MemeHandler
     {
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly DiscordSocketClient _client;
-        private readonly RumbiContext _context;
         private readonly AppConfig _config;
 
-        public MemeHandler(DiscordSocketClient client, RumbiContext context, AppConfig config)
+        public MemeHandler(IServiceScopeFactory scopeFactory, DiscordSocketClient client, AppConfig config)
         {
             _client = client;
-            _context = context;
             _config = config;
+            _scopeFactory = scopeFactory;
         }
 
         public void Initialize()
@@ -24,18 +27,25 @@ namespace Rumbi.Handlers
 
         private async Task HandleMessageReceived(SocketMessage arg)
         {
-            if (arg.Channel.Id != _config.ChannelConfig.Bot)
-                return;
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetService<RumbiContext>();
 
-            if (arg.Author.IsBot)
-                return;
+                if (arg.Channel.Id != _config.ChannelConfig.Bot)
+                    return;
 
-            if (!_context.Memes.Any(x => x.Trigger == arg.Content))
-                return;
+                if (arg.Author.IsBot)
+                    return;
 
-            await arg.Channel.SendMessageAsync(
-                _context.Memes.FirstOrDefault(x => x.Trigger == arg.Content).Content
-            );
+                if (!dbContext.Memes.Any(x => x.Trigger == arg.Content))
+                    return;
+
+                var meme = dbContext.Memes.Where(x => x.Trigger == arg.Content).SingleOrDefault();
+
+                if (meme == null) return;
+
+                await arg.Channel.SendMessageAsync(meme.Content);
+            }
         }
     }
 }

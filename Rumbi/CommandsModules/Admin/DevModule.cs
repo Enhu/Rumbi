@@ -9,81 +9,9 @@ using Serilog;
 namespace Rumbi.Modules.Admin
 {
     [RequireOwner]
+    [Group("dev", "Developer commands")]
     public class DevModule : InteractionModuleBase<SocketInteractionContext>
     {
-        private readonly RumbiContext _dbContext;
-
-        public DevModule(RumbiContext context)
-        {
-            _dbContext = context;
-        }
-
-        [SlashCommand(
-            "save-color-roles",
-            "Finds all the unsaved color roles and tries to save them on the dabatase."
-        )]
-        public async Task SaveColorRoles()
-        {
-            await DeferAsync(ephemeral: true);
-
-            var users = Context.Guild.Users.Where(x => x.Roles.Count > 1);
-            var savedCount = 0;
-
-            try
-            {
-                foreach (var user in users)
-                {
-                    var colorRole = user.Roles
-                        .Where(
-                            x => x.Name.Equals(user.Username, StringComparison.OrdinalIgnoreCase)
-                        )
-                        .Where(x => !x.IsManaged)
-                        .Where(x => !x.IsHoisted)
-                        .Where(
-                            x =>
-                                !x.Permissions.KickMembers
-                                || !x.Permissions.BanMembers
-                                || !x.Permissions.ManageGuild
-                                || !x.Permissions.Administrator
-                        )
-                        .FirstOrDefault();
-
-                    if (colorRole == null)
-                        continue;
-
-                    if (_dbContext.Users.Any(x => x.Id == user.Id))
-                        continue;
-
-                    _dbContext.Users.Add(
-                        new User
-                        {
-                            Id = user.Id,
-                            ColorRoleId = colorRole.Id,
-                            Color = colorRole.Color.RawValue,
-                            Username = user.Username
-                        }
-                    );
-                    _dbContext.SaveChanges();
-
-                    savedCount++;
-                }
-
-                if (savedCount == 0)
-                {
-                    await FollowupAsync(text: "No role colors to save.", ephemeral: true);
-                    return;
-                }
-
-                await FollowupAsync(text: $"Successfully saved {savedCount} color roles.", ephemeral: true);
-            }
-            catch (Exception e)
-            {
-                await FollowupAsync(text: "An error ocurred. Check the logs for more information.", ephemeral: true);
-                Log.Error("An error ocurred trying to save roles on the database.");
-                Log.Error(e, e.Message, e.InnerException);
-            }
-        }
-
         [RequireOwner]
         [Group("streaming", "Group for the streaming role.")]
         public class StreamingRoleGroup : InteractionModuleBase<SocketInteractionContext>
@@ -153,10 +81,83 @@ namespace Rumbi.Modules.Admin
         }
 
         [RequireOwner]
-        [Group("unused-roles", "Group for unused roles")]
+        [Group("roles", "Group for unused roles")]
         public class UnusedRolesGroup : InteractionModuleBase<SocketInteractionContext>
         {
-            [SlashCommand("list-all", "Finds and lists all the unused roles.")]
+            private readonly RumbiContext _dbContext;
+
+            public UnusedRolesGroup(RumbiContext context)
+            {
+                _dbContext = context;
+            }
+
+            [SlashCommand(
+                "save-colors",
+                "Save user and color relationship on the database"
+            )]
+            public async Task SaveColorRoles()
+            {
+                await DeferAsync(ephemeral: true);
+
+                var users = Context.Guild.Users.Where(x => x.Roles.Count > 1);
+                var savedCount = 0;
+
+                try
+                {
+                    foreach (var user in users)
+                    {
+                        var colorRole = user.Roles
+                            .Where(
+                                x => x.Name.Equals(user.Username, StringComparison.OrdinalIgnoreCase)
+                            )
+                            .Where(x => !x.IsManaged)
+                            .Where(x => !x.IsHoisted)
+                            .Where(
+                                x =>
+                                    !x.Permissions.KickMembers
+                                    || !x.Permissions.BanMembers
+                                    || !x.Permissions.ManageGuild
+                                    || !x.Permissions.Administrator
+                            )
+                            .FirstOrDefault();
+
+                        if (colorRole == null)
+                            continue;
+
+                        if (_dbContext.Users.Any(x => x.Id == user.Id))
+                            continue;
+
+                        _dbContext.Users.Add(
+                            new User
+                            {
+                                Id = user.Id,
+                                ColorRoleId = colorRole.Id,
+                                Color = colorRole.Color.RawValue,
+                                Username = user.Username
+                            }
+                        );
+                        _dbContext.SaveChanges();
+
+                        savedCount++;
+                    }
+
+                    if (savedCount == 0)
+                    {
+                        await FollowupAsync(text: "No role colors to save.", ephemeral: true);
+                        return;
+                    }
+
+                    await FollowupAsync(text: $"Successfully saved {savedCount} color roles.", ephemeral: true);
+                }
+                catch (Exception e)
+                {
+                    await FollowupAsync(text: "An error ocurred. Check the logs for more information.", ephemeral: true);
+                    Log.Error("An error ocurred trying to save roles on the database.");
+                    Log.Error(e, e.Message, e.InnerException);
+                }
+            }
+
+            [SlashCommand("list-unused", "Lists unused roles.")]
             public async Task ListUnusedRoles()
             {
                 await DeferAsync(ephemeral: true);
@@ -193,7 +194,7 @@ namespace Rumbi.Modules.Admin
                 await FollowupAsync(embed: embed, ephemeral: true);
             }
 
-            [SlashCommand("delete-all", "Finds all the unused roles and deletes them.")]
+            [SlashCommand("delete-all-unused", "Deletes all unused roles.")]
             public async Task DeleteUnusedRoles(
                 [Summary(
                     name: "exclude",

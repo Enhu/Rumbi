@@ -2,6 +2,7 @@
 using Rumbi.Data;
 using Rumbi.Data.Config;
 using Rumbi.Data.Models;
+using Rumbi.Utils;
 using Serilog;
 using System.Drawing;
 
@@ -26,6 +27,6 @@ namespace Rumbi.Modules.General
             );
 
         [SlashCommand("about", "Information about this bot.")]
-        public async Task About() => await RespondAsync(text: "Nya :3", ephemeral: true);
+        public async Task About() => await RespondAsync(text: BotMessage.AboutBot, ephemeral: true);
     }
 }
