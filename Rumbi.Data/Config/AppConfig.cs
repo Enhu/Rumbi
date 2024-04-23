@@ -54,7 +54,7 @@ namespace Rumbi.Data.Config
             {
                 Runner = ulong.Parse(Environment.GetEnvironmentVariable("RUNNER_ROLE")),
                 Streaming = ulong.Parse(Environment.GetEnvironmentVariable("STREAMING_ROLE")),
-                Verifier = ulong.Parse(Environment.GetEnvironmentVariable("VERIFIER_ROLE")),
+                TheyThem = ulong.Parse(Environment.GetEnvironmentVariable("THEYTHEM_ROLE")),
                 SRDCMod = ulong.Parse(Environment.GetEnvironmentVariable("SRDCMOD_ROLE")),
                 Admin = ulong.Parse(Environment.GetEnvironmentVariable("ADMIN_ROLE"))
             };
@@ -81,7 +81,7 @@ namespace Rumbi.Data.Config
     {
         public ulong Streaming { get; set; } = 0;
         public ulong Runner { get; set; } = 0;
-        public ulong Verifier { get; set; } = 0;
+        public ulong TheyThem { get; set; } = 0;
         public ulong SRDCMod { get; set; } = 0;
         public ulong Admin { get; set; } = 0;
     }

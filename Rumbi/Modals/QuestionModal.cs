@@ -29,7 +29,7 @@ namespace Rumbi.Modals
         [ModalTextInput(
             "strat_content",
             TextInputStyle.Paragraph,
-            maxLength: 3000,
+            maxLength: 4000,
             placeholder: "A **sprint double jump!** :thumbs_up:"
         )]
         public string Content { get; set; }
