@@ -105,5 +105,23 @@ namespace Rumbi.CommandsModules.Speedrunning
                 return messageComponent;
             }
         }
+
+        public class GuidesModule : InteractionModuleBase<SocketInteractionContext>
+        {
+            [SlashCommand("guides", "Guides for speedrunning hat!")]
+            public async Task GetGuides()
+            {
+            }
+
+            [ComponentInteraction("helpGuides")]
+            public async Task HandleGuidesComponent()
+            {
+            }
+        }
+
+        [Group("tutorials", "Basic tutorials")]
+        public class TutorialsModule : InteractionModuleBase<SocketInteractionContext>
+        {
+        }
     }
 }

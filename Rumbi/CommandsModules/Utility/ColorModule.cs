@@ -86,8 +86,8 @@ namespace Rumbi.CommandsModules.Utility
             {
                 var guildRole = await Context.Guild.CreateRoleAsync(Context.User.Username);
 
-                var verifierRole = Context.Guild.GetRole(_config.RoleConfig.Verifier);
-                int position = verifierRole.Position - 1;
+                var theyThemRole = Context.Guild.GetRole(_config.RoleConfig.TheyThem);
+                int position = theyThemRole.Position - 1;
 
                 await guildRole.ModifyAsync(x =>
                 {

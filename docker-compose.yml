@@ -20,6 +20,7 @@ services:
       - DB_NAME=${DB_NAME}
     networks:
       - botnetwork
+    restart: unless-stopped
 
   postgres:
     container_name: rumbi-db
